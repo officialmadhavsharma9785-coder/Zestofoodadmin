@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Zesto — Admin Panel</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig={
+  apiKey: "AIzaSyD5n0pzUiSw8yOK6jy-fVCB1rcpZZ2eddk",
+  authDomain: "zesto-29dd8.firebaseapp.com",
+  databaseURL: "https://zesto-29dd8-default-rtdb.firebaseio.com",
+  projectId: "zesto-29dd8",
+  storageBucket: "zesto-29dd8.firebasestorage.app",
+  messagingSenderId: "262018581789",
+  appId: "1:262018581789:web:3812877b7d63961ace8df4"
+};
+  const app=firebase.initializeApp(firebaseConfig);const db=firebase.database();
+</script>
+<style>
+:root{
+  --primary:#145A32;--bg:#F6F6F6;--surface:#FFFFFF;--line:#E2E8D9;--muted:#6B7280;
+  --accent:#145A32;--accentText:#FFFFFF;--success:#18A957;--radius:16px;
+  --shadow:0 1px 2px rgba(10,10,10,.06),0 8px 24px rgba(10,10,10,.05);
+  --shadow-sm:0 1px 3px rgba(10,10,10,.08);
+  --safe:env(safe-area-inset-bottom,0px);
+  --accentLight:#d9ede0;--accentDark:#0d3d22;
+}
+*{box-sizing:border-box}
+*{min-width:0}
+body,h1,h2,h3,h4,h5,h6,p,span,div,a,button,input,select,textarea,td,th,label{overflow-wrap:break-word;word-break:normal}
+.chip,.tag,.badge,.btn,button{max-width:100%;white-space:normal}
+img{max-width:100%;height:auto}
+table{table-layout:auto;width:100%;border-collapse:collapse}
+td,th{white-space:nowrap}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:#111;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.4;font-size:14px}
+img{max-width:100%;display:block}
+button{font:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.topbar{position:sticky;top:0;z-index:20;background:#fff;backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid var(--line)}
+.topbar-inner{height:56px;display:flex;align-items:center;gap:10px;padding:0 16px;max-width:1100px;margin:0 auto}
+.topbar-logo{height:36px;width:auto;border-radius:8px;flex-shrink:0}
+.title{font-family:Poppins,sans-serif;font-size:20px;font-weight:700;margin:0;color:var(--accentDark);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-round{width:36px;height:36px;border-radius:999px;border:1px solid var(--line);background:#fff;display:inline-grid;place-items:center;color:#111;box-shadow:var(--shadow-sm)}
+.admin-wrap{max-width:1100px;margin:0 auto;padding:16px;padding-bottom:120px}
+.admin-card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-weight:700;border:none;border-radius:14px;padding:12px 16px;background:var(--accent);color:var(--accentText);font-size:14px;transition:background .2s}
+.btn:hover{background:var(--accentDark)}
+.btn:active{transform:translateY(1px)}
+.btn-outline{background:#fff;color:#111;border:1px solid var(--line)}
+.btn-outline:hover{background:var(--accentLight);border-color:var(--accent)}
+.btn-block{width:100%}
+.btn-sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn-danger{background:#E11D48;color:#fff;border:1px solid #E11D48}
+.btn-danger:hover{background:#be123c}
+.btn-success{background:var(--success);color:#fff;border:1px solid var(--success)}
+.muted{color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px}
+input,textarea,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,191,92,.15)}
+textarea{min-height:80px;resize:vertical}
+label{font-size:13px;color:#111;margin:8px 0 4px;display:block;font-weight:600}
+.row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.sep{height:1px;background:var(--line);margin:10px 0}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+.table th{background:var(--accentLight);font-weight:700;color:var(--accentDark);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.dropzone{border:2px dashed var(--accent);border-radius:14px;padding:18px;text-align:center;background:var(--accentLight);color:var(--accentDark);cursor:pointer;transition:background .2s}
+.dropzone:hover{background:#d4edca}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.thumb{width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.review-stars{color:#FFD700;font-size:14px}
+.review-stars .empty{color:#ddd}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--accentDark);color:#fff;padding:10px 14px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+.toast.show{opacity:1}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;box-shadow:var(--shadow-sm)}
+.stat-card .stat-num{font-size:28px;font-weight:700;font-family:Poppins;color:var(--accent)}
+.stat-card .stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.order-detail-card{background:var(--accentLight);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}
+.order-detail-card h4{margin:0 0 8px;font-family:Poppins;font-size:14px;color:var(--accentDark)}
+.map-container{width:100%;height:200px;border-radius:12px;overflow:hidden;border:1px solid var(--line);margin-top:8px}
+#admin-view{display:none}
+.nav-grid{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+@media(min-width:600px){.nav-grid{grid-template-columns:repeat(4,1fr)}}
+.nav-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:1px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;transition:box-shadow .2s,transform .2s;text-align:center}
+.nav-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:var(--accent)}
+.nav-card i{font-size:28px;color:var(--accent)}
+.nav-card span{font-weight:600;font-size:13px}
+.del-status-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.del-status-chip.unassigned{background:#FFF7E6;color:#D97706;border:1px solid #FFE0A3}
+.del-status-chip.accepted{background:#E0F2FE;color:#0284C7;border:1px solid #BAE6FD}
+.del-status-chip.preparing{background:#FEF3C7;color:#B45309;border:1px solid #FDE68A}
+.del-status-chip.ready{background:#EDE9FE;color:#6D28D9;border:1px solid #DDD6FE}
+.del-status-chip.picked{background:#F3E8FF;color:#7C3AED;border:1px solid #DDD6FE}
+.del-status-chip.ontheway{background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE}
+.del-status-chip.delivered{background:#E6F7EE;color:#18A957;border:1px solid #CFF7DF}
+.new-order-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:center;justify-content:center}
+.new-order-modal-backdrop.open{display:flex}
+.new-order-modal{background:#fff;border-radius:22px;max-width:480px;width:92%;max-height:88vh;overflow-y:auto;margin:20px}
+@keyframes ringPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.ring-pulse{animation:ringPulse 1s ease-in-out infinite}
+.stage-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.earning-box{background:var(--accentLight);border:1px solid var(--accent);border-radius:10px;padding:12px;text-align:center;}
+.earning-box .amt{font-size:22px;font-weight:bold;color:var(--accentDark);font-family:Poppins}
+.earning-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.payout-preset{cursor:pointer;transition:all 0.2s;}
+.payout-preset:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button id="admin-back" class="icon-round" aria-label="Back" style="display:none" onclick="adminGoBack()"><i class="fa-solid fa-arrow-left"></i></button>
+    <button id="admin-home" class="icon-round" aria-label="Home" style="display:none" onclick="routeTo('#/dashboard')"><i class="fa-solid fa-house"></i></button>
+    <img id="admin-logo" class="topbar-logo" src="" alt="Zesto" style="display:none">
+    <h1 id="admin-title" class="title"><i class="fa-solid fa-shield-halved" style="color:var(--accent)"></i> Admin Panel</h1>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" id="admin-logout" style="display:none"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrap">
+  <div id="admin-login" class="admin-card" style="max-width:480px;margin:40px auto">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="width:64px;height:64px;border-radius:999px;background:var(--accentLight);display:grid;place-items:center;margin:0 auto 10px"><i class="fa-solid fa-lock" style="font-size:28px;color:var(--accent)"></i></div>
+      <h2 style="margin:0;font-family:Poppins;color:var(--accentDark)">Admin Login</h2>
+    </div>
+    <form id="admin-login-form" autocomplete="off">
+      <label>Admin ID</label><input id="adm-id" type="text" placeholder="Admin ID" required>
+      <label>Password</label><input id="adm-pw" type="password" placeholder="Password" required>
+      <div style="margin-top:14px"><button class="btn btn-block" type="submit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</button></div>
+    </form>
+  </div>
+  <div id="admin-view"></div>
+</div>
+
+<div id="new-order-modal-backdrop" class="new-order-modal-backdrop">
+  <div class="new-order-modal" id="new-order-modal-body"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const ADMIN_ID="Madhav@store";const ADMIN_PW="Madhav@Sharma123";
+const $=s=>document.querySelector(s);const $$=s=>Array.from(document.querySelectorAll(s));
+const money=n=>'\u20B9'+(n||0).toLocaleString("en-IN");
+const uid=()=>'p_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+const escapeHtml=(s="")=>s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const toast=msg=>{const t=$("#toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)};
+const routeTo=hash=>{location.hash=hash};
+function renderStarIcons(r,max=5){let h='';for(let i=1;i<=max;i++)h+=i<=r?'<i class="fa-solid fa-star"></i>':'<i class="fa-solid fa-star empty"></i>';return h}
+
+if(location.hash&&location.hash!=="#/dashboard"&&location.hash!=="#/"){
+  history.replaceState(null,"",location.pathname+location.search+"#/dashboard");
+}
+
+let PRODUCTS=[],ORDERS=[],CUSTOMERS=[],RATINGS=[],DELIVERY_APPS=[],CATEGORIES=[],OFFERS=[];
+let HERO_IMAGE_URL="",BANNER_TEXT="",APP_LOGO_URL="";
+let CONFIG={};
+let IS_AUTHED=sessionStorage.getItem("sf_admin_auth")==="1";
+let ADMIN_NAV_STACK=[location.hash||"#/dashboard"];
+let _adminBackNav=false;
+function adminGoBack(){
+  if(ADMIN_NAV_STACK.length<=1){routeTo("#/dashboard");return}
+  ADMIN_NAV_STACK.pop();
+  const prev=ADMIN_NAV_STACK[ADMIN_NAV_STACK.length-1];
+  _adminBackNav=true;
+  if(location.hash===prev)render();else location.hash=prev;
+}
+
+const productsRef=db.ref('products');const ordersRef=db.ref('orders');const ratingsRef=db.ref('ratings');const categoriesRef=db.ref('categories');
+const offersRef=db.ref('offers');const usersRef=db.ref('users');
+const milestonesRef=db.ref('milestones');const rewardsRef=db.ref('rewards');
+const referralCampaignsRef=db.ref('referralCampaigns');const referralsRef=db.ref('referrals');const referralSettingsRef=db.ref('referralSettings');
+const vendorsRef=db.ref('vendors');const vendorPlansRef=db.ref('vendorPlans');const vendorHelpVideosRef=db.ref('vendorHelpVideos');const vendorSettingsRef=db.ref('vendorSettings');
+let VENDORS_ALL=[],VENDOR_PLANS=[],VENDOR_HELP_VIDEOS=[],VENDOR_SETTINGS={maxPrepMinutes:120};
+vendorsRef.on('value',s=>{const v=s.val();VENDORS_ALL=v?Object.keys(v).map(k=>({uid:k,...v[k]})):[];tryRender()});
+vendorPlansRef.on('value',s=>{const v=s.val();VENDOR_PLANS=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+vendorHelpVideosRef.on('value',s=>{const v=s.val();VENDOR_HELP_VIDEOS=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+vendorSettingsRef.on('value',s=>{VENDOR_SETTINGS=s.val()||{maxPrepMinutes:120};tryRender()});
+let REFERRAL_CAMPAIGNS=[],REFERRALS_ALL=[],REFERRAL_SETTINGS={enabled:true};
+referralCampaignsRef.on('value',s=>{const v=s.val();REFERRAL_CAMPAIGNS=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+referralsRef.on('value',s=>{const v=s.val();REFERRALS_ALL=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+referralSettingsRef.on('value',s=>{REFERRAL_SETTINGS=s.val()||{enabled:true};tryRender()});
+let USERS=[],MILESTONES=[],REWARDS_ALL=[];
+usersRef.on('value',s=>{const v=s.val();USERS=v?Object.keys(v).map(k=>({uid:k,...v[k]})):[];USERS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()});
+milestonesRef.on('value',s=>{const v=s.val();MILESTONES=v?Object.keys(v).map(k=>({id:k,...v[k]})).sort((a,b)=>(a.ordersRequired||0)-(b.ordersRequired||0)):[];tryRender()});
+rewardsRef.on('value',s=>{const v=s.val();REWARDS_ALL=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+categoriesRef.on('value',s=>{const v=s.val();CATEGORIES=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+offersRef.on('value',s=>{const v=s.val();OFFERS=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
+const configRef=db.ref('config');const deliveryRef=db.ref('deliveryApplications');
+
+productsRef.on('value',s=>{PRODUCTS=s.val()?Object.values(s.val()):[];PRODUCTS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()});
+ordersRef.on('value',s=>{ORDERS=s.val()?Object.values(s.val()):[];ORDERS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));rebuildCustomers();checkForNewOrders();tryRender()});
+ratingsRef.on('value',s=>{RATINGS=s.val()?Object.values(s.val()):[];tryRender()});
+configRef.on('value',s=>{
+  CONFIG = s.val()||{};
+  HERO_IMAGE_URL=CONFIG.heroImage||"";BANNER_TEXT=CONFIG.bannerText||"";APP_LOGO_URL=CONFIG.appLogo||"";
+  if(APP_LOGO_URL){$("#admin-logo").src=APP_LOGO_URL;$("#admin-logo").style.display="block"}else{$("#admin-logo").style.display="none"}
+  tryRender()});
+deliveryRef.on('value',s=>{DELIVERY_APPS=s.val()?Object.values(s.val()):[];DELIVERY_APPS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()});
+
+function rebuildCustomers(){
+  const map={};
+  for(const o of ORDERS){const k=(o.customer?.email||o.customer?.phone||"").toLowerCase();if(!k)continue;if(!map[k])map[k]={key:k,name:o.customer?.name||"",email:o.customer?.email||"",phone:o.customer?.phone||"",orders:0,total:0,last:0};map[k].orders++;map[k].total+=o.amount||0;map[k].last=Math.max(map[k].last,o.createdAt||0)}
+  CUSTOMERS=Object.values(map).sort((a,b)=>b.last-a.last);
+}
+function tryRender(){if(IS_AUTHED)render()}
+
+$("#admin-login-form").addEventListener("submit",e=>{
+  e.preventDefault();
+  if($("#adm-id").value.trim().toLowerCase()===ADMIN_ID.toLowerCase()&&$("#adm-pw").value.trim()===ADMIN_PW){
+    IS_AUTHED=true;sessionStorage.setItem("sf_admin_auth","1");
+    $("#admin-login").style.display="none";$("#admin-view").style.display="block";$("#admin-logout").style.display="inline-flex";render();
+  }else alert("Invalid credentials.");
+});
+$("#admin-logout").addEventListener("click",()=>{IS_AUTHED=false;sessionStorage.removeItem("sf_admin_auth");location.reload()});
+if(IS_AUTHED){$("#admin-login").style.display="none";$("#admin-view").style.display="block";$("#admin-logout").style.display="inline-flex"}
+window.addEventListener("hashchange",()=>{
+  const h=location.hash||"#/dashboard";
+  if(_adminBackNav){_adminBackNav=false}
+  else if(ADMIN_NAV_STACK[ADMIN_NAV_STACK.length-1]!==h){ADMIN_NAV_STACK.push(h)}
+  render();
+});
+
+function render(){
+  if(!IS_AUTHED)return;
+  const h=location.hash.replace(/^#\/?/,"");const parts=h.split("/").filter(Boolean);
+  const page=parts[0]||"dashboard";const sub=parts[1]||"";
+  $("#admin-back").style.display=page==="dashboard"?"none":"inline-grid";
+  $("#admin-home").style.display=page==="dashboard"?"none":"inline-grid";
+  if(page==="dashboard")renderDashboard();
+  else if(page==="settings")renderSettings();
+  else if(page==="banners")renderBanners();
+  else if(page==="add")renderAddProduct();
+  else if(page==="categories")renderCategories();
+  else if(page==="offers")renderOffers();
+  else if(page==="products")renderProducts();
+  else if(page==="orders"&&sub)renderOrderDetail(sub);
+  else if(page==="orders")renderOrders();
+  else if(page==="customers")renderCustomers();
+  else if(page==="users")renderUsers();
+  else if(page==="loyalty")renderLoyalty();
+  else if(page==="referral")renderReferral();
+  else if(page==="vendors")renderVendors();
+  else if(page==="delivery"&&sub)renderDeliveryDetail(sub);
+  else if(page==="delivery")renderDeliveryApps();
+  else if(page==="reviews")renderReviews();
+  else renderDashboard();
+}
+
+function getDeliveryStats(email){
+  if(!email)return{accepted:0,pickedUp:0,delivered:0,total:0, orders:[]};
+  const e=email.toLowerCase();
+  const myOrders=ORDERS.filter(o=>o.deliveryBoy&&o.deliveryBoy.email&&o.deliveryBoy.email.toLowerCase()===e);
+  return{
+      accepted:myOrders.filter(o=>o.deliveryStatus==='Accepted').length,
+      pickedUp:myOrders.filter(o=>o.deliveryStatus==='Picked Up').length,
+      delivered:myOrders.filter(o=>o.deliveryStatus==='Delivered').length,
+      total:myOrders.length,
+      orders: myOrders
+  };
+}
+
+function renderDashboard(){
+  $("#admin-title").innerHTML='<i class="fa-solid fa-shield-halved" style="color:var(--accent)"></i> Dashboard';
+  const totalRevenue=ORDERS.reduce((a,o)=>a+(o.amount||0),0);
+  const pendingOrders=ORDERS.filter(o=>!o.status?.includes("Delivered")&&!o.status?.includes("Cancelled")).length;
+  const approvedDrivers=DELIVERY_APPS.filter(a=>a.status==='Approved').length;
+  
+  // Store status logic
+  const storeStatus = CONFIG.storeLocked ? 
+      '<span style="color:#E11D48;font-weight:700"><i class="fa-solid fa-lock"></i> CLOSED</span>' : 
+      '<span style="color:var(--success);font-weight:700"><i class="fa-solid fa-door-open"></i> OPEN</span>';
+
+  $("#admin-view").innerHTML=`
+    <div class="admin-card row" style="padding:12px 16px;">
+       <div><strong>Store Status:</strong> ${storeStatus}</div>
+       <a class="btn btn-sm btn-outline" href="#/settings">Change Settings</a>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">${PRODUCTS.length}</div><div class="stat-label">Products</div></div>
+      <div class="stat-card"><div class="stat-num">${ORDERS.length}</div><div class="stat-label">Total Orders</div></div>
+      <div class="stat-card"><div class="stat-num">${pendingOrders}</div><div class="stat-label">Pending</div></div>
+      <div class="stat-card"><div class="stat-num">${money(totalRevenue)}</div><div class="stat-label">Revenue</div></div>
+      <div class="stat-card"><div class="stat-num">${CUSTOMERS.length}</div><div class="stat-label">Customers</div></div>
+      <div class="stat-card"><div class="stat-num">${approvedDrivers}/${DELIVERY_APPS.length}</div><div class="stat-label">Delivery Boys</div></div>
+    </div>
+    <div class="nav-grid">
+      <a class="nav-card" href="#/settings"><i class="fa-solid fa-gear"></i><span>Settings & Config</span></a>
+      <a class="nav-card" href="#/banners"><i class="fa-solid fa-images"></i><span>Banners & Hero</span></a>
+      <a class="nav-card" href="#/add"><i class="fa-solid fa-plus-circle"></i><span>Add Product</span></a>
+      <a class="nav-card" href="#/categories"><i class="fa-solid fa-tags"></i><span>Category Management</span></a>
+      <a class="nav-card" href="#/offers"><i class="fa-solid fa-percent"></i><span>Offers Management</span></a>
+      <a class="nav-card" href="#/products"><i class="fa-solid fa-boxes-stacked"></i><span>Products</span></a>
+      <a class="nav-card" href="#/orders"><i class="fa-solid fa-receipt"></i><span>Orders</span></a>
+      <a class="nav-card" href="#/customers"><i class="fa-solid fa-users"></i><span>Customers</span></a>
+      <a class="nav-card" href="#/users"><i class="fa-solid fa-user-shield"></i><span>User Management</span></a>
+      <a class="nav-card" href="#/loyalty"><i class="fa-solid fa-trophy"></i><span>Loyalty Rewards</span></a>
+      <a class="nav-card" href="#/referral"><i class="fa-solid fa-user-plus"></i><span>Referral Program</span></a>
+      <a class="nav-card" href="#/vendors"><i class="fa-solid fa-store"></i><span>Vendor Management</span></a>
+      <a class="nav-card" href="#/delivery"><i class="fa-solid fa-motorcycle"></i><span>Delivery Partners</span></a>
+      <a class="nav-card" href="#/reviews"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
+    </div>`;
+}
+
+function renderSettings(){
+  $("#admin-title").textContent="Settings & Configuration";
+  
+  $("#admin-view").innerHTML=`
+    <div class="admin-card" style="${CONFIG.storeLocked ? 'border:2px solid #E11D48; background:#FFF0F2' : 'border:2px solid var(--success); background:#F0FDF4'}">
+      <h3 style="margin:0 0 12px;font-family:Poppins;"><i class="fa-solid fa-store"></i> Store Lock (Open/Close)</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:13px">Turn off the store at night or when you are not accepting orders. Users will not be able to checkout.</p>
+      <select id="cfg-lock" style="max-width:300px; font-weight:bold;">
+         <option value="open" ${!CONFIG.storeLocked ? 'selected' : ''}>🟢 Store is OPEN</option>
+         <option value="locked" ${CONFIG.storeLocked ? 'selected' : ''}>🔴 Store is CLOSED (Locked)</option>
+      </select>
+      <div style="margin-top:10px;"><button class="btn btn-sm" id="save-lock">Update Status</button></div>
+    </div>
+
+    <div class="admin-card">
+      <h3 style="margin:0 0 12px;font-family:Poppins;color:var(--accentDark)"><i class="fa-solid fa-map-location-dot"></i> Delivery Partner Payouts</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:13px">Set distance-based earnings for your delivery boys. This amount goes to their digital wallet per delivery.</p>
+      <div class="row" style="gap:10px; flex-wrap:wrap;">
+         <div style="flex:1"><label>0 to 2 km (\u20B9)</label><input id="dp-fee-1" type="number" value="${CONFIG.payout_0_2 || 20}"></div>
+         <div style="flex:1"><label>2 to 5 km (\u20B9)</label><input id="dp-fee-2" type="number" value="${CONFIG.payout_2_5 || 40}"></div>
+         <div style="flex:1"><label>5 to 10 km (\u20B9)</label><input id="dp-fee-3" type="number" value="${CONFIG.payout_5_10 || 60}"></div>
+      </div>
+      <div style="margin-top:10px;"><button class="btn btn-sm" id="save-dp-fees">Save Payout Rules</button></div>
+    </div>
+
+    <div class="admin-card">
+      <h3 style="margin:0 0 12px;font-family:Poppins;color:var(--accentDark)"><i class="fa-solid fa-city"></i> App Allowed Cities</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:13px">Enter comma-separated cities where Zesto is active.</p>
+      <input id="cfg-cities" type="text" placeholder="E.g. Jaipur, Delhi, Mumbai" value="${escapeHtml(CONFIG.allowedCities || 'Jaipur, Delhi, Mumbai')}">
+      <button class="btn btn-sm" id="cfg-save-cities" style="margin-top:10px"><i class="fa-solid fa-save"></i> Save Cities</button>
+    </div>
+
+    <div class="admin-card">
+      <h3 style="margin:0 0 12px;font-family:Poppins;color:var(--accentDark)"><i class="fa-solid fa-palette"></i> App Logo</h3>
+      <div class="dropzone" id="logo-dz"><i class="fa-solid fa-cloud-arrow-up" style="font-size:24px"></i><div style="font-weight:700;margin-top:6px">Click to upload logo</div></div>
+      <input id="logo-upload" type="file" accept="image/*" style="display:none">
+      <div class="thumbs" id="logo-thumbs">${APP_LOGO_URL?`<div class="thumb" style="width:96px;height:96px"><img src="${APP_LOGO_URL}"></div>`:''}</div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn" id="logo-save"><i class="fa-solid fa-save"></i> Save Logo</button>
+        <button class="btn btn-danger" id="logo-remove"><i class="fa-solid fa-trash"></i> Remove</button>
+      </div>
+    </div>`;
+
+  // Store Lock Setup
+  $("#save-lock").addEventListener("click", () => {
+     const locked = $("#cfg-lock").value === 'locked';
+     db.ref('config/storeLocked').set(locked).then(()=>{
+         toast(locked ? "Store is now CLOSED!" : "Store is now OPEN!");
+         renderSettings();
+     });
+  });
+
+  // Delivery Boy Fees Setup
+  $("#save-dp-fees").addEventListener("click", () => {
+      db.ref('config').update({
+          payout_0_2: Number($("#dp-fee-1").value),
+          payout_2_5: Number($("#dp-fee-2").value),
+          payout_5_10: Number($("#dp-fee-3").value)
+      }).then(() => toast("Delivery Payouts Updated!"));
+  });
+
+  // Cities Setup
+  $("#cfg-save-cities").addEventListener("click", () => {
+     db.ref('config/allowedCities').set($("#cfg-cities").value.trim()).then(()=>toast("Cities updated!"));
+  });
+
+  // Logo Setup
+  $("#logo-dz").addEventListener("click",()=>$("#logo-upload").click());
+  $("#logo-upload").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;const d=await compressToDataURL(f,400,400,.9);$("#logo-thumbs").innerHTML=`<div class="thumb" style="width:96px;height:96px"><img src="${d}"></div>`;$("#logo-upload").dataset.pending=d});
+  $("#logo-save").addEventListener("click",async()=>{
+    const pending=$("#logo-upload").dataset.pending;
+    if(!pending&&!$("#logo-upload").files[0]){
+      if(APP_LOGO_URL){toast("Logo already saved.");return}
+      alert("Please select a logo image.");return;
+    }
+    const d=pending||await compressToDataURL($("#logo-upload").files[0],400,400,.9);
+    db.ref('config/appLogo').set(d).then(()=>toast("Logo saved!")).catch(()=>alert("Failed."));
+  });
+  $("#logo-remove").addEventListener("click",()=>{
+    if(confirm("Remove the app logo?")){
+      db.ref('config/appLogo').set("").then(()=>{toast("Logo removed!");$("#logo-thumbs").innerHTML="";delete $("#logo-upload").dataset.pending}).catch(()=>alert("Failed."));
+    }
+  });
+}
+
+function renderBanners(){
+  $("#admin-title").textContent="Banners & Hero";
+  $("#admin-view").innerHTML=`
+    <div class="admin-card"><h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)"><i class="fa-solid fa-bullhorn"></i> Animated Banner</h3>
+      <label>Banner Text</label><input id="b-text" type="text" value="${escapeHtml(BANNER_TEXT)}">
+      <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="b-save"><i class="fa-solid fa-save"></i> Save</button><button class="btn btn-outline" id="b-remove"><i class="fa-solid fa-trash"></i> Remove</button></div>
+    </div>
+    <div class="admin-card"><h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)"><i class="fa-solid fa-image"></i> Hero Image</h3>
+      <div class="dropzone" id="hero-dz"><i class="fa-solid fa-cloud-arrow-up" style="font-size:24px"></i><div style="font-weight:700;margin-top:6px">Click to upload</div></div>
+      <input id="hero-upload" type="file" accept="image/*" style="display:none">
+      <div class="thumbs" id="hero-thumbs">${HERO_IMAGE_URL?`<div class="thumb"><img src="${HERO_IMAGE_URL}"></div>`:''}</div>
+      <div style="margin-top:10px"><button class="btn" id="hero-save"><i class="fa-solid fa-save"></i> Save Hero</button></div>
+    </div>`;
+  $("#hero-dz").addEventListener("click",()=>$("#hero-upload").click());
+  $("#b-save").addEventListener("click",()=>{db.ref('config/bannerText').set($("#b-text").value.trim()).then(()=>toast("Saved!"))});
+  $("#b-remove").addEventListener("click",()=>{db.ref('config/bannerText').set("").then(()=>{toast("Removed!");$("#b-text").value=""})});
+  $("#hero-save").addEventListener("click",async()=>{const f=$("#hero-upload").files[0];if(!f){alert("Select image.");return}const d=await compressToDataURL(f,1200,1200,.85);db.ref('config/heroImage').set(d).then(()=>toast("Saved!"))});
+}
+
+let pendingUploads=[];let editingProductId=null;
+let editingOfferId=null;let pendingOfferImage='';
+let editingCategoryId=null;let pendingCatImage='';
+function renderOffers(offerToEdit=null){
+  $("#admin-title").textContent="Offers Management";
+  editingOfferId=offerToEdit?offerToEdit.id:null;
+  pendingOfferImage=offerToEdit?(offerToEdit.imageUrl||''):'';
+  const catOptions=CATEGORIES.map(c=>`<option value="${escapeHtml(c.name)}" ${offerToEdit&&offerToEdit.category===c.name?'selected':''}>${escapeHtml(c.name)}</option>`).join('');
+
+  const rows=OFFERS.map(o=>`
+    <div class="admin-card" style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px">
+      <img src="${o.imageUrl||''}" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#f3f3f3">
+      <div style="flex:1">
+        <div style="font-weight:700">${escapeHtml(o.title||'')}</div>
+        <div class="muted" style="font-size:12px">${escapeHtml(o.discount||'')} ${o.category?'&middot; '+escapeHtml(o.category):''}</div>
+        <div class="chip" style="font-size:11px;margin-top:4px;background:${o.active===false?'#FEE2E2':'var(--accentLight)'};border:none;display:inline-block">${o.active===false?'Inactive':'Active'}</div>
+      </div>
+      <button class="btn btn-sm btn-outline" data-edit-offer="${o.id}"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-sm btn-danger" data-del-offer="${o.id}"><i class="fa-solid fa-trash"></i></button>
+    </div>`).join("");
+
+  $("#admin-view").innerHTML=`
+    <div class="admin-card">
+      <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">${editingOfferId?'Edit Offer':'Add New Offer'}</h3>
+      <label>Offer Title *</label><input id="of-title" value="${escapeHtml(offerToEdit?.title||'')}" placeholder="e.g. Flat 50% OFF">
+      <label>Description</label><input id="of-desc" value="${escapeHtml(offerToEdit?.description||'')}" placeholder="e.g. On all Pizza orders above \u20b9199">
+      <label>Discount Tag</label><input id="of-discount" value="${escapeHtml(offerToEdit?.discount||'')}" placeholder="e.g. 50% OFF">
+      <label>Link to Category (optional)</label>
+      <select id="of-category" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+        <option value="">-- None --</option>
+        ${catOptions}
+      </select>
+      <label style="margin-top:12px">Offer Banner Image</label>
+      <div class="dropzone" id="of-dz"><i class="fa-solid fa-cloud-arrow-up" style="font-size:24px"></i><div style="font-weight:700;margin-top:6px">Click to upload</div></div>
+      <input id="of-upload" type="file" accept="image/*" style="display:none">
+      <div class="thumbs" id="of-thumbs">${pendingOfferImage?`<div class="thumb"><img src="${pendingOfferImage}"></div>`:''}</div>
+      <label style="margin-top:12px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="of-active" ${!offerToEdit||offerToEdit.active!==false?'checked':''} style="width:auto"> Active (visible to customers)</label>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="btn btn-block" id="of-save"><i class="fa-solid fa-save"></i> ${editingOfferId?'Update Offer':'Save Offer'}</button>
+        ${editingOfferId?`<button class="btn btn-outline" id="of-cancel">Cancel</button>`:''}
+      </div>
+    </div>
+    <h4 style="margin:20px 4px 8px;color:var(--accentDark)">All Offers (${OFFERS.length})</h4>
+    ${rows||'<div class="muted" style="padding:12px">No offers yet. Add one above.</div>'}
+  `;
+
+  $("#of-dz").addEventListener("click",()=>$("#of-upload").click());
+  $("#of-upload").addEventListener("change",async e=>{
+    const f=e.target.files[0];if(!f)return;
+    pendingOfferImage=await compressToDataURL(f,600,340,.85);
+    $("#of-thumbs").innerHTML=`<div class="thumb"><img src="${pendingOfferImage}"></div>`;
+  });
+  $("#of-save").addEventListener("click",()=>{
+    const title=$("#of-title").value.trim();
+    if(!title){alert("Please enter an offer title.");return}
+    const data={
+      title,
+      description:$("#of-desc").value.trim(),
+      discount:$("#of-discount").value.trim(),
+      category:$("#of-category").value,
+      imageUrl:pendingOfferImage||'',
+      active:$("#of-active").checked
+    };
+    if(editingOfferId){
+      db.ref('offers/'+editingOfferId).update(data).then(()=>{toast("Offer updated!");editingOfferId=null;pendingOfferImage=''});
+    }else{
+      const k=db.ref('offers').push().key;
+      db.ref('offers/'+k).set(data).then(()=>{toast("Offer added!");pendingOfferImage='';});
+    }
+  });
+  $("#of-cancel")?.addEventListener("click",()=>{editingOfferId=null;pendingOfferImage='';renderOffers()});
+  $$("[data-edit-offer]").forEach(b=>b.addEventListener("click",()=>{const o=OFFERS.find(x=>x.id===b.dataset.editOffer);renderOffers(o)}));
+  $$("[data-del-offer]").forEach(b=>b.addEventListener("click",()=>{if(confirm("Delete this offer?"))db.ref('offers/'+b.dataset.delOffer).remove().then(()=>toast("Deleted"))}));
+}
+
+function renderCategories(catToEdit=null){
+  $("#admin-title").textContent="Category Management";
+  editingCategoryId=catToEdit?catToEdit.id:null;
+  pendingCatImage=catToEdit?(catToEdit.imageUrl||''):'';
+
+  const rows=CATEGORIES.map(c=>`
+    <div class="admin-card" style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px">
+      <img src="${c.imageUrl||''}" style="width:48px;height:48px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#f3f3f3">
+      <div style="flex:1">
+        <div style="font-weight:700">${escapeHtml(c.name)}</div>
+        <div class="chip" style="font-size:11px;margin-top:4px;background:${c.type==='food'?'var(--accentLight)':'#E0F2FE'};border:none;display:inline-block">${c.type==='food'?'Food':'Grocery'}</div>
+      </div>
+      <button class="btn btn-sm btn-outline" data-edit-cat="${c.id}"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-sm btn-danger" data-del-cat="${c.id}"><i class="fa-solid fa-trash"></i></button>
+    </div>`).join("");
+
+  $("#admin-view").innerHTML=`
+    <div class="admin-card">
+      <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">${editingCategoryId?'Edit Category':'Add New Category'}</h3>
+      <label>Category Name *</label><input id="cat-name" value="${escapeHtml(catToEdit?.name||'')}" placeholder="e.g. Biryani or Fresh Vegetables">
+      <label>Section *</label>
+      <select id="cat-type" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;margin-top:4px;font-family:inherit;font-size:14px">
+        <option value="food" ${(!catToEdit||catToEdit.type==='food')?'selected':''}>Food</option>
+        <option value="grocery" ${catToEdit&&catToEdit.type==='grocery'?'selected':''}>Grocery</option>
+      </select>
+      <label style="margin-top:16px">Category Icon Image</label>
+      <div class="dropzone" id="cat-dz"><i class="fa-solid fa-cloud-arrow-up" style="font-size:24px"></i><div style="font-weight:700;margin-top:6px">Click to upload</div></div>
+      <input id="cat-upload" type="file" accept="image/*" style="display:none">
+      <div class="thumbs" id="cat-thumbs">${pendingCatImage?`<div class="thumb"><img src="${pendingCatImage}"></div>`:''}</div>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button class="btn btn-block" id="cat-save"><i class="fa-solid fa-save"></i> ${editingCategoryId?'Update Category':'Save Category'}</button>
+        ${editingCategoryId?`<button class="btn btn-outline" id="cat-cancel">Cancel</button>`:''}
+      </div>
+    </div>
+    <h4 style="margin:20px 4px 8px;color:var(--accentDark)">All Categories (${CATEGORIES.length})</h4>
+    ${rows||'<div class="muted" style="padding:12px">No categories yet. Add one above.</div>'}
+  `;
+
+  $("#cat-dz").addEventListener("click",()=>$("#cat-upload").click());
+  $("#cat-upload").addEventListener("change",async e=>{
+    const f=e.target.files[0];if(!f)return;
+    pendingCatImage=await compressToDataURL(f,300,300,.85);
+    $("#cat-thumbs").innerHTML=`<div class="thumb"><img src="${pendingCatImage}"></div>`;
+  });
+  $("#cat-save").addEventListener("click",()=>{
+    const name=$("#cat-name").value.trim();
+    const type=$("#cat-type").value;
+    if(!name){alert("Please enter category name.");return}
+    const data={name,type,imageUrl:pendingCatImage||''};
+    if(editingCategoryId){
+      db.ref('categories/'+editingCategoryId).update(data).then(()=>{toast("Category updated!");editingCategoryId=null;pendingCatImage=''});
+    }else{
+      const k=db.ref('categories').push().key;
+      db.ref('categories/'+k).set(data).then(()=>{toast("Category added!");pendingCatImage='';});
+    }
+  });
+  $("#cat-cancel")?.addEventListener("click",()=>{editingCategoryId=null;pendingCatImage='';renderCategories()});
+  $$("[data-edit-cat]").forEach(b=>b.addEventListener("click",()=>{const c=CATEGORIES.find(x=>x.id===b.dataset.editCat);renderCategories(c)}));
+  $$("[data-del-cat]").forEach(b=>b.addEventListener("click",()=>{if(confirm("Delete this category?"))db.ref('categories/'+b.dataset.delCat).remove().then(()=>toast("Deleted"))}));
+}
+function renderAddProduct(product=null){
+  const p=product||{};editingProductId=p.id||null;pendingUploads=p.imageUrls?p.imageUrls.slice():[];
+  $("#admin-title").textContent=editingProductId?"Edit Product":"Add Product";
+  
+  // Dynamic City-Wise Pricing Inputs
+  const cities = (CONFIG.allowedCities || "Jaipur,Delhi,Mumbai").split(',').map(s=>s.trim());
+  let cityInputsHtml = cities.map(c => {
+      const cp = (p.cityPricing && p.cityPricing[c]) ? p.cityPricing[c] : {};
+      return `
+      <div class="city-pricing-row" data-city-name="${escapeHtml(c)}" style="border:1px solid var(--line); padding:12px; border-radius:10px; margin-bottom:10px; background:#fafafa;">
+          <strong style="color:var(--accentDark); font-size:15px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c)}</strong>
+          <div class="row" style="gap:10px; margin-top:8px;">
+             <div style="flex:1"><label>MRP</label><input class="c-mrp" type="number" min="0" value="${cp.mrp||''}" placeholder="Optional"></div>
+             <div style="flex:1"><label>Discount %</label><input class="c-disc" type="number" min="0" max="99" value="${cp.disc||''}" placeholder="%"></div>
+             <div style="flex:1"><label>Sale Price</label><input class="c-price" type="number" min="0" value="${cp.price||''}" placeholder="Override"></div>
+          </div>
+      </div>`;
+  }).join('');
+
+  $("#admin-view").innerHTML=`
+    <div class="admin-card">
+      <label>Product Name *</label><input id="pf-name" required value="${escapeHtml(p.name||'')}">
+      <label>Description</label><textarea id="pf-desc">${escapeHtml(p.description||'')}</textarea>
+      <label>Category *</label>
+      <select id="pf-category" required style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+        <option value="" disabled ${!p.category?'selected':''}>-- Select Category --</option>
+        ${CATEGORIES.length?CATEGORIES.map(c=>`<option value="${escapeHtml(c.name)}" ${p.category===c.name?'selected':''}>${escapeHtml(c.name)} (${c.type==='food'?'Food':'Grocery'})</option>`).join(''):''}
+      </select>
+      ${!CATEGORIES.length?`<p class="muted" style="font-size:12px;margin-top:6px"><i class="fa-solid fa-circle-info"></i> No categories yet — go to <a href="#/categories" style="color:var(--accent);font-weight:700">Category Management</a> and add some first.</p>`:''}
+      
+      <div class="row" style="gap:10px"><div style="flex:1"><label>Default MRP</label><input id="pf-mrp" type="number" min="0" value="${p.priceMrp||''}"></div><div style="flex:1"><label>Default Discount %</label><input id="pf-disc" type="number" min="0" max="99" value="${p.discountPercent||''}"></div><div style="flex:1"><label>Default Sale Price *</label><input id="pf-price" type="number" min="0" value="${p.price||''}"></div></div>
+      
+      <h4 style="margin:24px 0 8px; color:var(--accentDark); border-bottom:1px solid var(--line); padding-bottom:6px;">City-Wise Pricing (Advanced)</h4>
+      <p class="muted" style="font-size:12px; margin-top:0">Leave these blank if you want the city to use the Default Sale Price above.</p>
+      ${cityInputsHtml}
+
+      <label style="margin-top:16px;">Shipping Charge (\u20B9)</label>
+      <p class="muted" style="font-size:11px; margin-top:0;">Enter 0 for Free Delivery.</p>
+      <input id="pf-shipping" type="number" min="0" value="${p.shipping!==undefined?p.shipping:50}">
+      
+      <label style="margin-top:16px">Food Type</label>
+      <div style="display:flex;gap:10px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:#E6F7EE;padding:10px 14px;border-radius:10px;border:1px solid #CFF7DF;flex:1">
+          <input type="radio" name="pf-vegtype" id="pf-veg" value="veg" style="width:18px;height:18px;margin:0" ${p.isVeg!==false?'checked':''}>
+          <span style="font-weight:700;color:#18A957"><i class="fa-solid fa-square" style="border:1px solid #18A957;color:#18A957"></i> Veg</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:#FEE2E2;padding:10px 14px;border-radius:10px;border:1px solid #FECACA;flex:1">
+          <input type="radio" name="pf-vegtype" id="pf-nonveg" value="nonveg" style="width:18px;height:18px;margin:0" ${p.isVeg===false?'checked':''}>
+          <span style="font-weight:700;color:#E11D48"><i class="fa-solid fa-square" style="border:1px solid #E11D48;color:#E11D48"></i> Non-Veg</span>
+        </label>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;margin:20px 0;cursor:pointer;background:#FEE2E2;padding:12px;border-radius:10px;border:1px solid #FECACA;width:fit-content">
+        <input type="checkbox" id="pf-out-of-stock" style="width:20px;height:20px;margin:0" ${p.outOfStock ? 'checked' : ''}>
+        <span style="font-weight:700;color:#E11D48">Mark as Out of Stock</span>
+      </label>
+
+      <label>Product Images *</label>
+      <div class="dropzone" id="pf-dz"><i class="fa-solid fa-cloud-arrow-up" style="font-size:24px"></i><div style="font-weight:700;margin-top:6px">Click to upload</div></div>
+      <input id="pf-upload" type="file" accept="image/*" multiple style="display:none">
+      <div class="thumbs" id="pf-thumbs"></div>
+      
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button class="btn btn-block" id="pf-save"><i class="fa-solid fa-save"></i> ${editingProductId?'Update Product':'Save Product'}</button>
+        <button class="btn btn-outline" id="pf-reset">Reset</button>
+      </div>
+    </div>`;
+  renderThumbs();
+  $("#pf-dz").addEventListener("click",()=>$("#pf-upload").click());
+  $("#pf-upload").addEventListener("change",async e=>{pendingUploads=[];for(const f of Array.from(e.target.files||[])){pendingUploads.push(await compressToDataURL(f,1200,1200,.85))}renderThumbs()});
+  $("#pf-reset").addEventListener("click",()=>{editingProductId=null;pendingUploads=[];renderAddProduct()});
+  $("#pf-save").addEventListener("click",saveProduct);
+}
+
+function renderThumbs(){const t=$("#pf-thumbs");if(t)t.innerHTML=pendingUploads.map(u=>`<div class="thumb"><img src="${u}"></div>`).join("")}
+
+function saveProduct(){
+  const name=$("#pf-name").value.trim();const desc=$("#pf-desc").value.trim();const cat=$("#pf-category").value.trim();
+  let mrp=Number($("#pf-mrp").value||0);let disc=Number($("#pf-disc").value||0);let price=Number($("#pf-price").value||0);
+  
+  let shipStr = $("#pf-shipping").value;
+  const ship = shipStr === '' ? 50 : Number(shipStr);
+
+  const outOfStock = $("#pf-out-of-stock").checked;
+  const isVeg = $("#pf-nonveg").checked ? false : true;
+  
+  // Gather City-Wise Pricing
+  const cityPricing = {};
+  $$(".city-pricing-row").forEach(row => {
+      const c = row.dataset.cityName;
+      let cmrp = Number(row.querySelector('.c-mrp').value || 0);
+      let cdisc = Number(row.querySelector('.c-disc').value || 0);
+      let cprice = Number(row.querySelector('.c-price').value || 0);
+      
+      if(!cprice && cmrp && cdisc) cprice = Math.round(cmrp*(100-cdisc)/100);
+      if(!cmrp && cprice && cdisc) cmrp = Math.round(cprice*100/(100-cdisc));
+      if(!cdisc && cmrp && cprice) cdisc = Math.max(0, Math.min(99, Math.round((cmrp-cprice)/cmrp*100)));
+      
+      if (cprice || cmrp) {
+          cityPricing[c] = { mrp: cmrp, disc: cdisc, price: cprice };
+      }
+  });
+
+  if(!price&&mrp&&disc)price=Math.round(mrp*(100-disc)/100);
+  if(!mrp&&price&&disc)mrp=Math.round(price*100/(100-disc));
+  if(!disc&&mrp&&price)disc=Math.max(0,Math.min(99,Math.round((mrp-price)/mrp*100)));
+  
+  if(!name||!price||!cat){alert("Please fill Name, Category, and Default Sale Price.");return}
+  if(!pendingUploads.length){alert("Upload at least one image.");return}
+
+  const data={
+      name, description:desc, category:cat, 
+      priceMrp:mrp, discountPercent:disc, price, 
+      shipping:ship, imageUrls:pendingUploads.slice(), 
+      createdAt:Date.now(), outOfStock, cityPricing, isVeg
+  };
+
+  if(editingProductId){
+      const p=PRODUCTS.find(x=>x.id===editingProductId);
+      if(p?.firebaseKey){
+          db.ref('products/'+p.firebaseKey).update(data).then(()=>{toast("Product Updated!");editingProductId=null;pendingUploads=[];routeTo("#/products")})
+      }
+  } else {
+      const k=db.ref('products').push().key;
+      db.ref('products/'+k).set({...data,id:uid(),firebaseKey:k}).then(()=>{toast("Product Saved!");pendingUploads=[];renderAddProduct()})
+  }
+}
+
+function renderProducts(){
+  $("#admin-title").textContent="Manage Products";
+  $("#admin-view").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="margin:0;font-family:Poppins;color:var(--accentDark)">${PRODUCTS.length} Products</h3><a class="btn btn-sm" href="#/add"><i class="fa-solid fa-plus"></i> Add</a></div>
+    <div style="display:flex;flex-direction:column;gap:12px">${PRODUCTS.map(p=>`
+      <div class="admin-card" style="display:flex;align-items:center;gap:12px;padding:12px; ${p.outOfStock ? 'opacity:0.6' : ''}">
+        <img src="${p.imageUrls?.[0]||''}" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">
+        <div style="flex:1">
+           <div style="font-weight:700">${escapeHtml(p.name)} ${p.outOfStock ? '<span style="color:#E11D48;font-size:11px;font-weight:bold;margin-left:4px;">(OUT OF STOCK)</span>' : ''}</div>
+           <div class="muted" style="font-size:13px">${money(p.price||0)} ${p.discountPercent?`<span style="color:var(--accent)">${p.discountPercent}% OFF</span>`:''} | Ship: ${p.shipping === 0 ? 'Free' : money(p.shipping)}</div>
+           ${p.cityPricing && Object.keys(p.cityPricing).length > 0 ? `<div style="font-size:11px;color:var(--accent);margin-top:2px;">Multi-City Pricing Active</div>` : ''}
+        </div>
+        <button class="btn btn-outline btn-sm" data-edit="${p.id}"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger" data-del="${p.id}"><i class="fa-solid fa-trash"></i></button>
+      </div>`).join('')}</div>`;
+  
+  $$("[data-edit]").forEach(b=>b.onclick=(e)=>{const btn=e.target.closest('[data-edit]'); const p=PRODUCTS.find(x=>x.id===btn.dataset.edit);if(p){routeTo("#/add");setTimeout(()=>renderAddProduct(p),50)}});
+  $$("[data-del]").forEach(b=>b.onclick=(e)=>{const btn=e.target.closest('[data-del]'); const p=PRODUCTS.find(x=>x.id===btn.dataset.del);if(p&&confirm("Delete this product?")){db.ref('products/'+p.firebaseKey).remove().then(()=>toast("Deleted!"))}});
+}
+
+let ORDERS_TAB='active';
+function renderOrders(){
+  $("#admin-title").textContent="Manage Orders";
+  const isActive=o=>!(o.deliveryStatus==='Delivered'||(o.status&&o.status.includes('Cancelled')));
+  const activeOrders=ORDERS.filter(isActive);
+  const historyOrders=ORDERS.filter(o=>!isActive(o));
+  const list=ORDERS_TAB==='active'?activeOrders:historyOrders;
+  $("#admin-view").innerHTML=`
+    <div class="admin-card" style="display:flex;gap:8px;padding:10px">
+      <button class="btn btn-sm ${ORDERS_TAB==='active'?'':'btn-outline'}" onclick="switchOrdersTab('active')">Active (${activeOrders.length})</button>
+      <button class="btn btn-sm ${ORDERS_TAB==='history'?'':'btn-outline'}" onclick="switchOrdersTab('history')">History (${historyOrders.length})</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+    ${list.length===0?'<div class="admin-card muted">No orders here.</div>':list.map(o=>{
+      const isOnline=o.paymentMethod==='online';
+      const payBadge=isOnline?'<span style="color:#5F259F;font-weight:600">UPI</span>':'<span style="font-weight:600;color:var(--accentDark)">COD</span>';
+      const delStatus=o.deliveryStatus||'New Order';
+      const delBoy=o.deliveryBoy?escapeHtml(o.deliveryBoy.name||'—'):'Not assigned';
+      return`<div class="admin-card" style="cursor:pointer;position:relative" data-order="${o.orderId}">
+        <button class="btn btn-sm btn-danger" style="position:absolute;top:12px;right:12px;z-index:2" data-delete-order="${o.firebaseKey}" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
+        <div class="row" style="padding-right:40px"><strong style="color:var(--accentDark)">#${escapeHtml(o.orderId)}</strong><span class="muted" style="font-size:12px">${new Date(o.createdAt).toLocaleString()}</span></div>
+        <div class="row" style="margin-top:6px"><div>${escapeHtml(o.customer?.name||'—')} <span class="muted" style="font-size:11px">(${escapeHtml(o.customer?.city||'—')})</span></div><div style="font-weight:700;color:var(--accentDark)">${money(o.amount)}</div></div>
+        <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div class="chip">${payBadge}</div>
+          <span class="del-status-chip ${delStatusClass(delStatus)}"><i class="fa-solid fa-motorcycle"></i> ${delBoy} — ${delStatus}</span>
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:4px">${escapeHtml(o.items?.map(i=>i.name+' x'+i.qty).join(', ')||'')}</div>
+      </div>`}).join('')}
+    </div>`;
+  $$("[data-order]").forEach(el=>el.addEventListener("click",e=>{if(e.target.closest("[data-delete-order]"))return;routeTo("#/orders/"+el.dataset.order)}));
+
+  $$("[data-delete-order]").forEach(btn=>btn.addEventListener("click",e=>{
+    e.stopPropagation();
+    const btnEl = e.target.closest('[data-delete-order]');
+    if(confirm("Are you sure you want to DELETE this order? This cannot be undone.")){
+      db.ref('orders/'+btnEl.dataset.deleteOrder).remove().then(()=>toast("Order deleted!")).catch(()=>alert("Failed to delete."));
+    }
+  }));
+}
+function switchOrdersTab(t){ORDERS_TAB=t;renderOrders()}
+
+function renderOrderDetail(orderId){
+  const o=ORDERS.find(x=>x.orderId===orderId);if(!o){renderOrders();return}
+  $("#admin-title").textContent="Order #"+o.orderId;
+  const isOnline=o.paymentMethod==='online';
+  const sub=o.items.reduce((a,it)=>a+((it.price||0)*it.qty),0);
+  const shipT=o.items.reduce((a,it)=>a+(typeof it.shipping === 'number' ? it.shipping : 50),0);
+  const locHtml=o.deliveryLocation?`<div class="order-detail-card"><h4><i class="fa-solid fa-location-dot"></i> Delivery Location</h4><div class="muted">Lat: ${o.deliveryLocation.lat.toFixed(5)}, Lng: ${o.deliveryLocation.lng.toFixed(5)}</div><div id="order-map" class="map-container"></div></div>`:'';
+  
+  // Timer & Payout Logic
+  const currentTimer = o.deliveryTimer || 30;
+  const payout0_2 = CONFIG.payout_0_2 || 20;
+  const payout2_5 = CONFIG.payout_2_5 || 40;
+  const payout5_10 = CONFIG.payout_5_10 || 60;
+  const currentPayout = o.deliveryPayout !== undefined ? o.deliveryPayout : payout0_2;
+
+  const isActiveTracking=!!(o.deliveryBoy&&o.deliveryLocation&&o.liveLocation&&(o.deliveryStatus==='Picked Up'||o.deliveryStatus==='On the Way'));
+  let liveTrackHtml='';
+  if(isActiveTracking){
+    const distKm=haversineKm(o.liveLocation.lat,o.liveLocation.lng,o.deliveryLocation.lat,o.deliveryLocation.lng);
+    const etaMin=estimateEtaMinutes(distKm);
+    const agoSec=o.liveLocation.updatedAt?Math.max(0,Math.round((Date.now()-o.liveLocation.updatedAt)/1000)):0;
+    liveTrackHtml=`<div class="order-detail-card" style="padding:0;overflow:hidden">
+      <div id="admin-live-map" style="width:100%;height:240px"></div>
+      <div style="padding:14px">
+        <h4 style="margin:0 0 8px"><i class="fa-solid fa-location-crosshairs"></i> Live Location</h4>
+        <div style="display:flex;gap:20px">
+          <div><div style="font-weight:800;color:var(--accentDark);font-size:18px">${etaMin} min</div><div class="muted" style="font-size:12px">ETA</div></div>
+          <div><div style="font-weight:800;color:var(--accentDark);font-size:18px">${distKm.toFixed(1)} km</div><div class="muted" style="font-size:12px">Remaining</div></div>
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:6px"><i class="fa-solid fa-circle-dot" style="color:var(--success)"></i> Updated ${agoSec}s ago</div>
+      </div>
+    </div>`;
+  }
+
+  const delBoyHtml=o.deliveryBoy?`<div class="order-detail-card"><h4><i class="fa-solid fa-motorcycle"></i> Delivery Partner</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px">
+      <div><strong>Name:</strong> ${escapeHtml(o.deliveryBoy.name||'—')}</div>
+      <div><strong>Phone:</strong> ${escapeHtml(o.deliveryBoy.phone||'—')}</div>
+      <div><strong>Email:</strong> ${escapeHtml(o.deliveryBoy.email||'—')}</div>
+      <div><strong>Status:</strong> <span class="del-status-chip ${delStatusClass(o.deliveryStatus)}">${escapeHtml(o.deliveryStatus||'Accepted')}</span></div>
+    </div>
+    <div style="margin-top:8px; font-weight:bold; color:var(--accentDark)">Delivery Boy Payout for this order: ${money(currentPayout)}</div>
+    </div>`:`<div class="order-detail-card"><h4><i class="fa-solid fa-motorcycle"></i> Delivery Partner</h4><div class="muted">Not yet assigned.</div></div>`;
+
+  const curStage=stageIndex(o.deliveryStatus||'New Order');
+  const kitchenStages=["New Order","Accepted","Preparing","Ready for Pickup"];
+  const kitchenIdx=kitchenStages.indexOf(o.deliveryStatus);
+  const stageHtml=`<div class="order-detail-card">
+    <h4><i class="fa-solid fa-kitchen-set"></i> Kitchen / Order Progress</h4>
+    <div style="margin:8px 0"><span class="del-status-chip ${delStatusClass(o.deliveryStatus)}" style="font-size:13px">${escapeHtml(o.deliveryStatus||'New Order')}</span></div>
+    ${curStage<3?(()=>{
+      const nextIdx=Math.max(kitchenIdx,0)+ (kitchenIdx<0?0:1);
+      const next=kitchenStages[nextIdx];
+      return next?`<div class="stage-btn-row"><button class="btn" data-set-stage="${next}"><i class="fa-solid fa-arrow-right"></i> Mark as: ${next}</button></div>`:'';
+    })():`<div class="muted" style="font-size:13px">This order has moved past kitchen stages — now tracked by the delivery partner.</div>`}
+  </div>`;
+
+  $("#admin-view").innerHTML=`
+    <div class="admin-card">
+      <div class="row"><h3 style="margin:0;font-family:Poppins;color:var(--accentDark)">Order #${escapeHtml(o.orderId)}</h3><div class="muted">${new Date(o.createdAt).toLocaleString()}</div></div>
+      <div class="sep"></div>
+      ${stageHtml}
+      ${liveTrackHtml}
+      <div class="order-detail-card">
+        <h4><i class="fa-solid fa-user"></i> Customer Details</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px">
+          <div><strong>Name:</strong> ${escapeHtml(o.customer?.name||'—')}</div>
+          <div><strong>Email:</strong> ${escapeHtml(o.customer?.email||'—')}</div>
+          <div><strong>Phone:</strong> ${escapeHtml(o.customer?.phone||'—')}</div>
+          <div><strong>Pincode:</strong> ${escapeHtml(o.customer?.pincode||'—')}</div>
+        </div>
+        <div style="font-size:13px;margin-top:4px"><strong>Address:</strong> ${escapeHtml(o.customer?.address||'—')}, ${escapeHtml(o.customer?.city||'')} ${escapeHtml(o.customer?.state||'')}</div>
+        ${o.customer?.landmark?`<div style="font-size:13px"><strong>Landmark:</strong> ${escapeHtml(o.customer.landmark)}</div>`:''}
+      </div>
+      <div class="order-detail-card">
+        <h4><i class="fa-solid fa-box"></i> Order Items</h4>
+        ${o.items.map(it=>{const prod=PRODUCTS.find(x=>x.id===it.productId);return`
+          <div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
+            <img src="${prod?.imageUrls?.[0]||''}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">
+            <div style="flex:1"><div style="font-weight:600">${escapeHtml(it.name)}</div><div class="muted" style="font-size:12px">Qty: ${it.qty} | Price: ${money(it.price||0)} | Ship: ${typeof it.shipping === 'number' ? money(it.shipping) : money(50)}</div></div>
+            <div style="font-weight:700;color:var(--accentDark)">${money((it.price||0)*it.qty+(typeof it.shipping === 'number' ? it.shipping : 50))}</div>
+          </div>`}).join('')}
+        <div style="margin-top:10px">
+          <div class="row"><strong>Subtotal</strong><strong>${money(sub)}</strong></div>
+          <div class="row"><strong>Customer Shipping Paid</strong><strong>${shipT === 0 ? 'Free' : money(shipT)}</strong></div>
+          <div class="row" style="font-size:16px;margin-top:4px;color:var(--accentDark)"><strong>Total Order Value</strong><strong>${money(o.amount)}</strong></div>
+        </div>
+      </div>
+      <div class="order-detail-card">
+        <h4><i class="fa-solid fa-credit-card"></i> Payment</h4>
+        <div style="font-size:13px"><strong>Method:</strong> ${isOnline?'Online Payment (UPI)':'Cash on Delivery'}</div>
+        ${o.upiTxnId?`<div style="font-size:13px"><strong>UPI Txn ID:</strong> ${escapeHtml(o.upiTxnId)}</div>`:''}
+      </div>
+      
+      ${locHtml}
+      ${delBoyHtml}
+      
+      <!-- New Update & Configuration Section for Timer and Delivery Payout -->
+      <div class="order-detail-card" style="background:#FFF9C4; border-color:#FFC107;">
+        <h4><i class="fa-solid fa-pen-to-square"></i> Order Configurations & Updates</h4>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div>
+                <label>Order Status</label>
+                <select id="od-status">
+                    ${["COD - Placed","Online Payment - Verifying","Online Payment - Confirmed","Processing","Shipped","Out for Delivery","Delivered (COD)","Delivered","Cancelled"].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label>Tracking URL</label>
+                <input id="od-track" placeholder="Tracking URL" value="${escapeHtml(o.trackingUrl||'')}">
+            </div>
+            <div>
+                <label>Delivery Timer (Minutes)</label>
+                <input id="od-timer" type="number" min="1" value="${currentTimer}">
+            </div>
+            <div>
+                <label>Assign Delivery Boy Payout (\u20B9)</label>
+                <p class="muted" style="font-size:10px; margin:0 0 6px 0; line-height:1.2;">Check map distance and click a button to assign the payout.</p>
+                <div style="display:flex; gap:4px; margin-bottom:6px; flex-wrap:wrap;">
+                    <button class="chip payout-preset" style="font-size:11px; padding:4px 8px" type="button" data-val="${payout0_2}">0-2km (${money(payout0_2)})</button>
+                    <button class="chip payout-preset" style="font-size:11px; padding:4px 8px" type="button" data-val="${payout2_5}">2-5km (${money(payout2_5)})</button>
+                    <button class="chip payout-preset" style="font-size:11px; padding:4px 8px" type="button" data-val="${payout5_10}">5-10km (${money(payout5_10)})</button>
+                </div>
+                <input id="od-payout" type="number" value="${currentPayout}">
+            </div>
+        </div>
+        <button class="btn btn-block btn-success" id="od-save"><i class="fa-solid fa-save"></i> Save All Updates</button>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <a class="btn btn-outline btn-sm" href="#/orders"><i class="fa-solid fa-arrow-left"></i> Back</a>
+        <button class="btn btn-sm btn-danger" id="od-delete"><i class="fa-solid fa-trash"></i> Delete Order</button>
+      </div>
+    </div>`;
+
+  if(o.deliveryLocation){
+      setTimeout(()=>{
+          const mapEl = document.getElementById('order-map');
+          if(mapEl && mapEl._leaflet_id) { mapEl._leaflet_id = null; }
+          const map=L.map('order-map').setView([o.deliveryLocation.lat,o.deliveryLocation.lng],15);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; CartoDB'}).addTo(map);
+          L.marker([o.deliveryLocation.lat,o.deliveryLocation.lng]).addTo(map);
+          setTimeout(() => map.invalidateSize(), 300);
+      },100);
+  }
+  
+  // Logic for Payout Preset Buttons
+  $$(".payout-preset").forEach(btn => {
+      btn.addEventListener("click", () => {
+          $("#od-payout").value = btn.dataset.val;
+      });
+  });
+
+  $("#od-save").addEventListener("click",()=>{
+      const status=$("#od-status").value;
+      const track=$("#od-track").value.trim();
+      const timer=Number($("#od-timer").value) || 30;
+      const payout=Number($("#od-payout").value) || 0;
+
+      db.ref('orders/'+o.firebaseKey).update({
+          status, 
+          trackingUrl: track, 
+          deliveryTimer: timer, 
+          deliveryPayout: payout
+      }).then(()=>toast("Order Updated!")).catch(()=>alert("Failed."));
+  });
+
+  $("#od-delete").addEventListener("click",()=>{if(confirm("DELETE this order permanently?")){db.ref('orders/'+o.firebaseKey).remove().then(()=>{toast("Order deleted!");routeTo("#/orders")}).catch(()=>alert("Failed."))}});
+
+  $("[data-set-stage]")?.addEventListener("click",e=>{
+    const newStage=e.target.closest("[data-set-stage]").dataset.setStage;
+    db.ref('orders/'+o.firebaseKey).update({deliveryStatus:newStage}).then(()=>{toast("Order marked: "+newStage);render()}).catch(()=>alert("Failed."));
+  });
+
+  if(isActiveTracking){
+    setTimeout(()=>{
+      const mapEl=document.getElementById('admin-live-map');
+      if(!mapEl)return;
+      if(mapEl._leaflet_id)mapEl._leaflet_id=null;
+      try{
+        const map=L.map('admin-live-map',{zoomControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false}).setView([o.liveLocation.lat,o.liveLocation.lng],14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; CartoDB'}).addTo(map);
+        const partnerIcon=L.divIcon({html:'<div style="background:var(--accent);color:#fff;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:15px"><i class="fa-solid fa-motorcycle"></i></div>',className:'',iconSize:[34,34]});
+        const homeIcon=L.divIcon({html:'<div style="background:#E11D48;color:#fff;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:13px"><i class="fa-solid fa-house"></i></div>',className:'',iconSize:[30,30]});
+        L.marker([o.liveLocation.lat,o.liveLocation.lng],{icon:partnerIcon}).addTo(map);
+        L.marker([o.deliveryLocation.lat,o.deliveryLocation.lng],{icon:homeIcon}).addTo(map);
+        L.polyline([[o.liveLocation.lat,o.liveLocation.lng],[o.deliveryLocation.lat,o.deliveryLocation.lng]],{color:'#145A32',weight:3,dashArray:'6,6'}).addTo(map);
+        map.fitBounds([[o.liveLocation.lat,o.liveLocation.lng],[o.deliveryLocation.lat,o.deliveryLocation.lng]],{padding:[30,30]});
+        setTimeout(()=>map.invalidateSize(),200);
+      }catch(err){console.warn("Admin live map init failed:",err)}
+    },100);
+  }
+}
+
+function renderCustomers(){
+  $("#admin-title").textContent="Customers";
+  $("#admin-view").innerHTML=`<div class="admin-card"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Total</th><th>Last</th></tr></thead><tbody>
+    ${CUSTOMERS.length===0?'<tr><td colspan="6" class="muted">No customers yet.</td></tr>':CUSTOMERS.map(c=>`<tr><td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.email)}</td><td>${escapeHtml(c.phone)}</td><td>${c.orders}</td><td>${money(c.total)}</td><td>${c.last?new Date(c.last).toLocaleDateString():'—'}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+function renderUsers(q=""){
+  $("#admin-title").textContent="User Management";
+  const term=q.trim().toLowerCase();
+  const filtered=term?USERS.filter(u=>(u.name||"").toLowerCase().includes(term)||(u.email||"").toLowerCase().includes(term)||(u.mobile||"").toLowerCase().includes(term)):USERS;
+  $("#admin-view").innerHTML=`
+    <div class="admin-card"><input id="user-search" placeholder="Search by name, email, or mobile..." value="${escapeHtml(q)}"></div>
+    <div class="admin-card"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Signed Up</th><th>Status</th><th>Action</th></tr></thead><tbody>
+    ${filtered.length===0?'<tr><td colspan="6" class="muted">No users found.</td></tr>':filtered.map(u=>`
+      <tr>
+        <td>${escapeHtml(u.name||"—")}</td>
+        <td>${escapeHtml(u.email||"—")}</td>
+        <td>${escapeHtml(u.mobile||"—")}</td>
+        <td>${u.createdAt?new Date(u.createdAt).toLocaleDateString():'—'}</td>
+        <td>${u.blocked?'<span class="chip" style="background:#FEE2E2;color:#E11D48;border-color:#E11D48">Blocked</span>':'<span class="chip" style="background:#E6F7EE;color:#18A957;border-color:#18A957">Active</span>'}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm ${u.blocked?'btn-success':'btn-danger'}" onclick="toggleUserBlock('${u.uid}',${!!u.blocked})">${u.blocked?'Unblock':'Block'}</button><button class="btn btn-sm btn-outline" onclick="deleteUserRecord('${u.uid}')">Delete</button></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+  $("#user-search").addEventListener("input",e=>renderUsers(e.target.value));
+  $("#user-search").focus();$("#user-search").selectionStart=$("#user-search").value.length;
+}
+function toggleUserBlock(uid,currentlyBlocked){
+  db.ref('users/'+uid).update({blocked:!currentlyBlocked}).then(()=>toast(currentlyBlocked?"User unblocked":"User blocked")).catch(()=>alert("Failed to update user status."));
+}
+function deleteUserRecord(uid){
+  if(!confirm("Delete this user's profile record? This removes their name/email/mobile/order-history-linking data from the database. It does NOT delete their login (Firebase Authentication) account — that requires a separate admin action for security reasons."))return;
+  db.ref('users/'+uid).remove().then(()=>toast("User record deleted")).catch(()=>alert("Failed to delete user record."));
+}
+
+/* ===== Loyalty Rewards Module ===== */
+let LOYALTY_TAB='dashboard';
+function isOrderCompleted(o){return (o.deliveryStatus==='Delivered'||o.status==='Delivered')&&!(o.status&&o.status.includes('Cancelled'))}
+
+/* ===== Order Status Flow ===== */
+const ORDER_STAGES=["New Order","Accepted","Preparing","Ready for Pickup","Picked Up","On the Way","Delivered"];
+function haversineKm(lat1,lng1,lat2,lng2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function estimateEtaMinutes(km){return Math.max(1,Math.round((km/25)*60))}
+function stageIndex(s){const i=ORDER_STAGES.indexOf(s);return i===-1?0:i}
+function delStatusClass(s){
+  switch(s){
+    case "Accepted":return"accepted";
+    case "Preparing":return"preparing";
+    case "Ready for Pickup":return"ready";
+    case "Picked Up":return"picked";
+    case "On the Way":return"ontheway";
+    case "Delivered":return"delivered";
+    default:return"unassigned";
+  }
+}
+
+/* ===== Ringtone (Web Audio, no external asset needed) ===== */
+let _ringCtx=null,_ringInterval=null;
+function startRingtone(){
+  if(_ringInterval)return;
+  try{
+    _ringCtx=_ringCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const beep=()=>{
+      if(!_ringCtx)return;
+      const o1=_ringCtx.createOscillator(),g1=_ringCtx.createGain();
+      o1.type="sine";o1.frequency.value=740;
+      g1.gain.setValueAtTime(0,_ringCtx.currentTime);
+      g1.gain.linearRampToValueAtTime(.3,_ringCtx.currentTime+.02);
+      g1.gain.linearRampToValueAtTime(0,_ringCtx.currentTime+.4);
+      o1.connect(g1);g1.connect(_ringCtx.destination);
+      o1.start();o1.stop(_ringCtx.currentTime+.45);
+    };
+    beep();
+    _ringInterval=setInterval(beep,650);
+  }catch(e){console.warn("Ringtone unavailable:",e)}
+}
+function stopRingtone(){
+  if(_ringInterval){clearInterval(_ringInterval);_ringInterval=null}
+}
+
+/* ===== New Order real-time popup ===== */
+let _seenAdminOrderIds=null;
+let _newOrderQueue=[];
+function checkForNewOrders(){
+  const currentIds=new Set(ORDERS.map(o=>o.firebaseKey));
+  if(_seenAdminOrderIds===null){_seenAdminOrderIds=currentIds;return}
+  const newOnes=ORDERS.filter(o=>!_seenAdminOrderIds.has(o.firebaseKey));
+  _seenAdminOrderIds=currentIds;
+  if(newOnes.length===0)return;
+  _newOrderQueue.push(...newOnes);
+  showNextNewOrderPopup();
+}
+function showNextNewOrderPopup(){
+  if(_newOrderQueue.length===0){stopRingtone();return}
+  const o=_newOrderQueue[0];
+  startRingtone();
+  const sub=o.items.reduce((a,it)=>a+((it.price||0)*it.qty),0);
+  $("#new-order-modal-body").innerHTML=`
+    <div style="padding:20px">
+      <div style="text-align:center;margin-bottom:14px">
+        <div class="ring-pulse" style="width:60px;height:60px;border-radius:50%;background:var(--accentLight);display:grid;place-items:center;margin:0 auto 10px;font-size:26px;color:var(--accent)"><i class="fa-solid fa-bell"></i></div>
+        <h2 style="margin:0;font-family:Poppins;color:var(--accentDark)">New Order Received!</h2>
+        <div class="muted" style="font-size:13px">#${escapeHtml(o.orderId)} · ${new Date(o.createdAt).toLocaleTimeString()}</div>
+      </div>
+      <div class="admin-card">
+        <div><strong>Customer:</strong> ${escapeHtml(o.customer?.name||'—')}</div>
+        <div><strong>Phone:</strong> ${escapeHtml(o.customer?.phone||'—')}</div>
+        <div><strong>Address:</strong> ${escapeHtml(o.customer?.address||'—')}, ${escapeHtml(o.customer?.city||'')} ${escapeHtml(o.customer?.pincode||'')}</div>
+      </div>
+      <div class="admin-card">
+        <div style="font-weight:700;margin-bottom:6px">Items</div>
+        ${o.items.map(it=>`<div class="row" style="font-size:14px"><div>${escapeHtml(it.name)} x${it.qty}</div><div>${money((it.price||0)*it.qty)}</div></div>`).join('')}
+        <div class="sep"></div>
+        <div class="row"><div class="muted">Payment</div><div style="font-weight:700">${o.paymentMethod==='online'?'Online / UPI':'Cash on Delivery'}</div></div>
+        <div class="row" style="font-weight:800;color:var(--accentDark);font-size:17px"><div>Total</div><div>${money(o.amount)}</div></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn btn-outline btn-block" id="new-order-dismiss">Dismiss</button>
+        <button class="btn btn-success btn-block" id="new-order-accept"><i class="fa-solid fa-check"></i> Accept Order</button>
+      </div>
+      ${_newOrderQueue.length>1?`<div class="muted" style="text-align:center;margin-top:10px;font-size:12px">+${_newOrderQueue.length-1} more new order(s) waiting</div>`:''}
+    </div>`;
+  $("#new-order-modal-backdrop").classList.add("open");
+  $("#new-order-accept").onclick=()=>{
+    db.ref('orders/'+o.firebaseKey).update({deliveryStatus:'Accepted'}).then(()=>toast("Order accepted!")).catch(()=>alert("Failed."));
+    _newOrderQueue.shift();
+    if(_newOrderQueue.length===0){$("#new-order-modal-backdrop").classList.remove("open");stopRingtone()}else showNextNewOrderPopup();
+  };
+  $("#new-order-dismiss").onclick=()=>{
+    _newOrderQueue.shift();
+    if(_newOrderQueue.length===0){$("#new-order-modal-backdrop").classList.remove("open");stopRingtone()}else showNextNewOrderPopup();
+  };
+}
+function userCompletedOrders(u){
+  const resetAt=u.loyaltyResetAt||0;
+  return ORDERS.filter(o=>{
+    const mine=o.uid===u.uid||((o.customer?.email||'').toLowerCase()===((u.email||'').toLowerCase())&&u.email);
+    return mine&&isOrderCompleted(o)&&(!resetAt||(o.createdAt||0)>resetAt);
+  }).length;
+}
+function userRewards(u){return REWARDS_ALL.filter(r=>r.uid===u.uid)}
+function userMilestoneInfo(u){
+  const completed=userCompletedOrders(u);
+  let target=null;
+  MILESTONES.filter(m=>m.active!==false).forEach(m=>{
+    if(m.repeatable){
+      const remaining=completed%m.ordersRequired===0?m.ordersRequired:m.ordersRequired-(completed%m.ordersRequired);
+      if(!target||remaining<target.remaining)target={milestone:m,remaining};
+    }else if(completed<m.ordersRequired){
+      const remaining=m.ordersRequired-completed;
+      if(!target||remaining<target.remaining)target={milestone:m,remaining};
+    }
+  });
+  return{completed,next:target};
+}
+
+function renderLoyalty(){
+  $("#admin-title").innerHTML='<i class="fa-solid fa-trophy" style="color:var(--accent)"></i> Loyalty Rewards';
+  const tabs=[['dashboard','Dashboard'],['milestones','Milestones'],['rewards','Rewards'],['users','User Details'],['analytics','Analytics']];
+  $("#admin-view").innerHTML=`
+    <div class="admin-card" style="display:flex;gap:8px;flex-wrap:wrap;padding:10px">
+      ${tabs.map(t=>`<button class="btn btn-sm ${LOYALTY_TAB===t[0]?'':'btn-outline'}" onclick="switchLoyaltyTab('${t[0]}')">${t[1]}</button>`).join('')}
+    </div>
+    <div id="loyalty-tab-body"></div>`;
+  renderLoyaltyTabBody();
+}
+function switchLoyaltyTab(t){LOYALTY_TAB=t;renderLoyalty()}
+function renderLoyaltyTabBody(){
+  if(LOYALTY_TAB==='dashboard')$("#loyalty-tab-body").innerHTML=loyaltyDashboardHtml();
+  else if(LOYALTY_TAB==='milestones'){$("#loyalty-tab-body").innerHTML=loyaltyMilestonesHtml();wireMilestoneForm();}
+  else if(LOYALTY_TAB==='rewards'){$("#loyalty-tab-body").innerHTML=loyaltyRewardsHtml();wireRewardsTab();}
+  else if(LOYALTY_TAB==='users'){$("#loyalty-tab-body").innerHTML=loyaltyUsersHtml();wireLoyaltyUsersTab();}
+  else if(LOYALTY_TAB==='analytics')$("#loyalty-tab-body").innerHTML=loyaltyAnalyticsHtml();
+}
+
+/* -- Dashboard -- */
+function loyaltyDashboardHtml(){
+  const activeMembers=USERS.filter(u=>userCompletedOrders(u)>0).length;
+  const issued=REWARDS_ALL.length;
+  const redeemed=REWARDS_ALL.filter(r=>r.status==='used').length;
+  const pending=REWARDS_ALL.filter(r=>r.status==='available').length;
+  const expired=REWARDS_ALL.filter(r=>r.status==='expired').length;
+  return `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-num">${USERS.length}</div><div class="stat-label">Loyalty Members</div></div>
+    <div class="stat-card"><div class="stat-num">${activeMembers}</div><div class="stat-label">Active Members</div></div>
+    <div class="stat-card"><div class="stat-num">${issued}</div><div class="stat-label">Rewards Issued</div></div>
+    <div class="stat-card"><div class="stat-num">${redeemed}</div><div class="stat-label">Rewards Redeemed</div></div>
+    <div class="stat-card"><div class="stat-num">${pending}</div><div class="stat-label">Pending Rewards</div></div>
+    <div class="stat-card"><div class="stat-num">${expired}</div><div class="stat-label">Expired Rewards</div></div>
+  </div>
+  <div class="admin-card"><h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Active Milestones</h3>
+  ${MILESTONES.filter(m=>m.active!==false).length===0?'<div class="muted">No active milestones configured yet — add one in the Milestones tab.</div>':MILESTONES.filter(m=>m.active!==false).map(m=>`<div class="chip" style="margin:4px">${m.ordersRequired} orders → ${escapeHtml(m.rewardName)}</div>`).join('')}
+  </div>`;
+}
+
+/* -- Milestone Management -- */
+function loyaltyMilestonesHtml(){
+  return `
+  <div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)" id="ms-form-title">Add Milestone</h3>
+    <input type="hidden" id="ms-edit-id">
+    <label>Number of Completed Orders Required</label><input id="ms-orders" type="number" min="1">
+    <label>Reward Name</label><input id="ms-name" placeholder="e.g. ₹50 Coupon">
+    <label>Reward Type</label>
+    <select id="ms-type"><option value="coupon">Coupon</option><option value="free_item">Free Item</option><option value="percentage">Percentage Discount</option><option value="fixed">Fixed Discount</option></select>
+    <label>Reward Value (₹ for coupon/fixed, % for percentage — ignored for free item)</label><input id="ms-value" type="number" min="0">
+    <label>Expiry Period (days after unlock, 0 = never expires)</label><input id="ms-expiry" type="number" min="0" value="30">
+    <div style="display:flex;gap:16px;margin-top:10px">
+      <label style="display:flex;align-items:center;gap:6px;font-weight:600"><input type="checkbox" id="ms-repeatable" style="width:auto"> Repeat every N orders</label>
+      <label style="display:flex;align-items:center;gap:6px;font-weight:600"><input type="checkbox" id="ms-active" checked style="width:auto"> Active</label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" id="ms-save">Save Milestone</button>
+      <button class="btn btn-outline" id="ms-cancel" style="display:none">Cancel Edit</button>
+    </div>
+  </div>
+  <div class="admin-card"><table class="table"><thead><tr><th>Orders</th><th>Reward</th><th>Type</th><th>Value</th><th>Expiry</th><th>Repeat</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${MILESTONES.length===0?'<tr><td colspan="8" class="muted">No milestones yet.</td></tr>':MILESTONES.map(m=>`
+    <tr>
+      <td>${m.ordersRequired}</td><td>${escapeHtml(m.rewardName)}</td><td>${escapeHtml(m.rewardType)}</td>
+      <td>${m.rewardType==='percentage'?(m.rewardValue||0)+'%':m.rewardType==='free_item'?'—':money(m.rewardValue||0)}</td>
+      <td>${m.expiryDays?m.expiryDays+' days':'Never'}</td>
+      <td>${m.repeatable?'Yes':'No'}</td>
+      <td>${m.active!==false?'<span class="chip" style="background:#E6F7EE;color:#18A957">Active</span>':'<span class="chip" style="background:#FEE2E2;color:#E11D48">Inactive</span>'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" onclick="editMilestone('${m.id}')">Edit</button>
+        <button class="btn btn-sm ${m.active!==false?'btn-outline':'btn-success'}" onclick="toggleMilestoneActive('${m.id}',${m.active!==false})">${m.active!==false?'Disable':'Enable'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteMilestone('${m.id}')">Delete</button>
+      </td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+}
+function wireMilestoneForm(){
+  $("#ms-save").addEventListener("click",saveMilestone);
+  $("#ms-cancel").addEventListener("click",resetMilestoneForm);
+}
+function resetMilestoneForm(){
+  $("#ms-edit-id").value="";$("#ms-orders").value="";$("#ms-name").value="";$("#ms-type").value="coupon";$("#ms-value").value="";$("#ms-expiry").value="30";$("#ms-repeatable").checked=false;$("#ms-active").checked=true;
+  $("#ms-form-title").textContent="Add Milestone";$("#ms-cancel").style.display="none";
+}
+function editMilestone(id){
+  const m=MILESTONES.find(x=>x.id===id);if(!m)return;
+  LOYALTY_TAB='milestones';renderLoyaltyTabBody();
+  $("#ms-edit-id").value=id;$("#ms-orders").value=m.ordersRequired;$("#ms-name").value=m.rewardName;$("#ms-type").value=m.rewardType;$("#ms-value").value=m.rewardValue;$("#ms-expiry").value=m.expiryDays||0;$("#ms-repeatable").checked=!!m.repeatable;$("#ms-active").checked=m.active!==false;
+  $("#ms-form-title").textContent="Edit Milestone";$("#ms-cancel").style.display="inline-flex";
+  window.scrollTo(0,0);
+}
+function saveMilestone(){
+  const id=$("#ms-edit-id").value;
+  const ordersRequired=parseInt($("#ms-orders").value);const rewardName=$("#ms-name").value.trim();const rewardType=$("#ms-type").value;
+  const rewardValue=parseFloat($("#ms-value").value)||0;const expiryDays=parseInt($("#ms-expiry").value)||0;
+  const repeatable=$("#ms-repeatable").checked;const active=$("#ms-active").checked;
+  if(!ordersRequired||!rewardName){alert("Please fill Orders Required and Reward Name.");return}
+  const data={ordersRequired,rewardName,rewardType,rewardValue,expiryDays,repeatable,active,updatedAt:Date.now()};
+  if(id){db.ref('milestones/'+id).update(data).then(()=>{toast("Milestone updated!");resetMilestoneForm()})}
+  else{data.createdAt=Date.now();db.ref('milestones').push(data).then(()=>{toast("Milestone created!");resetMilestoneForm()})}
+}
+function toggleMilestoneActive(id,current){db.ref('milestones/'+id).update({active:!current}).then(()=>toast(current?"Milestone disabled":"Milestone enabled"))}
+function deleteMilestone(id){if(!confirm("Delete this milestone? Already-issued rewards will not be affected."))return;db.ref('milestones/'+id).remove().then(()=>toast("Milestone deleted"))}
+
+/* -- Reward Management (manual controls) -- */
+function loyaltyRewardsHtml(){
+  return `
+  <div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Manually Issue Reward</h3>
+    <label>User</label><input id="mr-user-search" list="mr-user-list" placeholder="Type name, email or mobile...">
+    <datalist id="mr-user-list">${USERS.map(u=>`<option value="${escapeHtml(u.email||u.mobile||u.uid)}">${escapeHtml(u.name||'')}</option>`).join('')}</datalist>
+    <label>Reward Name</label><input id="mr-name" placeholder="e.g. Free Dessert">
+    <label>Reward Type</label>
+    <select id="mr-type"><option value="coupon">Coupon</option><option value="free_item">Free Item</option><option value="percentage">Percentage Discount</option><option value="fixed">Fixed Discount</option></select>
+    <label>Reward Value</label><input id="mr-value" type="number" min="0">
+    <label>Expiry (days, 0 = never)</label><input id="mr-expiry" type="number" min="0" value="30">
+    <button class="btn" id="mr-issue" style="margin-top:12px">Issue Reward</button>
+  </div>
+  <div class="admin-card"><input id="rw-search" placeholder="Search rewards by user, code, or reward name..."></div>
+  <div class="admin-card" id="rw-table-wrap">${rewardsTableHtml(REWARDS_ALL)}</div>`;
+}
+function rewardsTableHtml(list){
+  return `<table class="table"><thead><tr><th>User</th><th>Reward</th><th>Code</th><th>Status</th><th>Issued</th><th>Expires</th><th>Actions</th></tr></thead><tbody>
+  ${list.length===0?'<tr><td colspan="7" class="muted">No rewards found.</td></tr>':list.slice().sort((a,b)=>(b.issuedAt||0)-(a.issuedAt||0)).map(r=>`
+    <tr>
+      <td>${escapeHtml(r.userName||'—')}<br><span class="muted" style="font-size:11px">${escapeHtml(r.userEmail||r.userMobile||'')}</span></td>
+      <td>${escapeHtml(r.rewardName)}<br><span class="muted" style="font-size:11px">${escapeHtml(r.rewardType)}</span></td>
+      <td>${escapeHtml(r.code||'—')}</td>
+      <td>${r.status==='available'?'<span class="chip" style="background:#FFF7E6;color:#D97706">Pending</span>':r.status==='used'?'<span class="chip" style="background:#E6F7EE;color:#18A957">Redeemed</span>':'<span class="chip" style="background:#FEE2E2;color:#E11D48">Expired</span>'}</td>
+      <td>${r.issuedAt?new Date(r.issuedAt).toLocaleDateString():'—'}</td>
+      <td>${r.expiryAt?new Date(r.expiryAt).toLocaleDateString():'Never'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        ${r.status==='available'?`<button class="btn btn-sm btn-success" onclick="markRewardRedeemed('${r.id}')">Mark Redeemed</button>`:''}
+        ${r.status==='expired'?`<button class="btn btn-sm btn-outline" onclick="reissueReward('${r.id}')">Reissue</button>`:''}
+        <button class="btn btn-sm btn-danger" onclick="removeReward('${r.id}')">Remove</button>
+      </td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function wireRewardsTab(){
+  $("#mr-issue").addEventListener("click",issueManualReward);
+  $("#rw-search").addEventListener("input",e=>{
+    const term=e.target.value.trim().toLowerCase();
+    const filtered=term?REWARDS_ALL.filter(r=>(r.userName||'').toLowerCase().includes(term)||(r.userEmail||'').toLowerCase().includes(term)||(r.code||'').toLowerCase().includes(term)||(r.rewardName||'').toLowerCase().includes(term)):REWARDS_ALL;
+    $("#rw-table-wrap").innerHTML=rewardsTableHtml(filtered);
+  });
+}
+function markRewardRedeemed(id){db.ref('rewards/'+id).update({status:'used',usedAt:Date.now()}).then(()=>toast("Marked as redeemed"))}
+function removeReward(id){if(!confirm("Remove this reward permanently?"))return;db.ref('rewards/'+id).remove().then(()=>toast("Reward removed"))}
+function reissueReward(id){
+  const r=REWARDS_ALL.find(x=>x.id===id);if(!r)return;
+  const m=MILESTONES.find(x=>x.id===r.milestoneId);
+  const expiryDays=m?m.expiryDays:30;
+  const expiryAt=expiryDays?Date.now()+expiryDays*86400000:null;
+  db.ref('rewards/'+id).update({status:'available',expiryAt,issuedAt:Date.now(),usedAt:null,orderId:null}).then(()=>toast("Reward reissued"));
+}
+function issueManualReward(){
+  const idOrEmail=$("#mr-user-search").value.trim();
+  const user=USERS.find(u=>u.email===idOrEmail||u.mobile===idOrEmail||u.uid===idOrEmail);
+  if(!user){alert("Please select a valid user from the list.");return}
+  const name=$("#mr-name").value.trim();const type=$("#mr-type").value;const value=parseFloat($("#mr-value").value)||0;const expiryDays=parseInt($("#mr-expiry").value)||0;
+  if(!name){alert("Enter a reward name.");return}
+  const code='RWD'+Math.random().toString(36).slice(2,8).toUpperCase();
+  const expiryAt=expiryDays?Date.now()+expiryDays*86400000:null;
+  const reward={uid:user.uid,userName:user.name||"",userEmail:user.email||"",userMobile:user.mobile||"",milestoneId:null,rewardName:name,rewardType:type,rewardValue:value,code,status:'available',issuedAt:Date.now(),expiryAt,usedAt:null,orderId:null};
+  db.ref('rewards').push(reward).then(()=>{toast("Reward issued to "+(user.name||user.email));$("#mr-name").value="";$("#mr-value").value=""});
+}
+
+/* -- User Loyalty Details -- */
+function loyaltyUsersHtml(q=""){
+  const term=q.trim().toLowerCase();
+  const filtered=term?USERS.filter(u=>(u.name||'').toLowerCase().includes(term)||(u.email||'').toLowerCase().includes(term)||(u.mobile||'').toLowerCase().includes(term)):USERS;
+  return `
+  <div class="admin-card"><input id="lu-search" placeholder="Search users by name, email, or mobile..." value="${escapeHtml(q)}"></div>
+  <div id="lu-list">${loyaltyUsersListHtml(filtered)}</div>`;
+}
+function loyaltyUsersListHtml(list){
+  if(list.length===0)return '<div class="admin-card muted">No users found.</div>';
+  return list.map(u=>{
+    const info=userMilestoneInfo(u);
+    const rewards=userRewards(u);
+    const earned=rewards.length;const used=rewards.filter(r=>r.status==='used').length;const available=rewards.filter(r=>r.status==='available').length;const expired=rewards.filter(r=>r.status==='expired').length;
+    const totalOrders=ORDERS.filter(o=>o.uid===u.uid||((o.customer?.email||'').toLowerCase()===((u.email||'').toLowerCase())&&u.email)).length;
+    return `<div class="admin-card">
+      <div class="row"><div><strong style="color:var(--accentDark)">${escapeHtml(u.name||'—')}</strong><div class="muted" style="font-size:12px">${escapeHtml(u.email||'')} ${u.mobile?'· '+escapeHtml(u.mobile):''}</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-outline" onclick="resetUserLoyalty('${u.uid}')">Reset Progress</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px;font-size:12px">
+        <div style="text-align:center;padding:8px;background:var(--accentLight);border-radius:10px"><div style="font-weight:700;color:var(--accent)">${totalOrders}</div><div class="muted">Total Orders</div></div>
+        <div style="text-align:center;padding:8px;background:var(--accentLight);border-radius:10px"><div style="font-weight:700;color:var(--accent)">${info.completed}</div><div class="muted">Completed</div></div>
+        <div style="text-align:center;padding:8px;background:#F3E8FF;border-radius:10px"><div style="font-weight:700;color:#7C3AED">${earned}</div><div class="muted">Earned</div></div>
+        <div style="text-align:center;padding:8px;background:#FFF7E6;border-radius:10px"><div style="font-weight:700;color:#D97706">${available}</div><div class="muted">Available</div></div>
+        <div style="text-align:center;padding:8px;background:#E6F7EE;border-radius:10px"><div style="font-weight:700;color:var(--success)">${used}</div><div class="muted">Used</div></div>
+        <div style="text-align:center;padding:8px;background:#FEE2E2;border-radius:10px"><div style="font-weight:700;color:#E11D48">${expired}</div><div class="muted">Expired</div></div>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:8px">${info.next?`Current milestone progress: ${info.next.remaining} order(s) to "${escapeHtml(info.next.milestone.rewardName)}"`:'All current milestones unlocked.'}</div>
+      ${rewards.length?`<div class="sep"></div><div style="font-size:12px"><strong>Reward History:</strong> ${rewards.slice().sort((a,b)=>(b.issuedAt||0)-(a.issuedAt||0)).map(r=>`<span class="chip" style="margin:2px;font-size:11px">${escapeHtml(r.rewardName)} — ${r.status}</span>`).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function wireLoyaltyUsersTab(){
+  $("#lu-search").addEventListener("input",e=>{
+    const term=e.target.value.trim().toLowerCase();
+    const filtered=term?USERS.filter(u=>(u.name||'').toLowerCase().includes(term)||(u.email||'').toLowerCase().includes(term)||(u.mobile||'').toLowerCase().includes(term)):USERS;
+    $("#lu-list").innerHTML=loyaltyUsersListHtml(filtered);
+  });
+}
+function resetUserLoyalty(uid){
+  if(!confirm("Reset this user's loyalty progress? Their completed-order count for milestones will restart from zero (past rewards already issued are kept)."))return;
+  db.ref('users/'+uid).update({loyaltyResetAt:Date.now()}).then(()=>toast("Loyalty progress reset")).catch(()=>alert("Failed."));
+}
+
+/* -- Analytics -- */
+function loyaltyAnalyticsHtml(){
+  const redeemedList=REWARDS_ALL.filter(r=>r.status==='used');
+  const byName={};
+  redeemedList.forEach(r=>{byName[r.rewardName]=(byName[r.rewardName]||0)+1});
+  const mostRedeemed=Object.entries(byName).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const byUser={};
+  REWARDS_ALL.forEach(r=>{byUser[r.userEmail||r.userMobile||r.uid]=(byUser[r.userEmail||r.userMobile||r.uid]||0)+1});
+  const mostActive=Object.entries(byUser).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([key,count])=>{
+    const u=USERS.find(x=>x.email===key||x.mobile===key||x.uid===key);
+    return{name:u?u.name:key,count};
+  });
+  const redemptionRate=REWARDS_ALL.length?Math.round((redeemedList.length/REWARDS_ALL.length)*100):0;
+  const repeatCustomers=USERS.filter(u=>userCompletedOrders(u)>1).length;
+  const repeatRate=USERS.length?Math.round((repeatCustomers/USERS.length)*100):0;
+  return `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-num">${redemptionRate}%</div><div class="stat-label">Reward Redemption Rate</div></div>
+    <div class="stat-card"><div class="stat-num">${repeatRate}%</div><div class="stat-label">Repeat Customer Rate</div></div>
+  </div>
+  <div class="admin-card"><h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Most Redeemed Rewards</h3>
+  ${mostRedeemed.length===0?'<div class="muted">No redemptions yet.</div>':mostRedeemed.map(([name,count])=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div>${escapeHtml(name)}</div><div style="font-weight:700;color:var(--accentDark)">${count}</div></div>`).join('')}
+  </div>
+  <div class="admin-card"><h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Most Active Loyalty Customers</h3>
+  ${mostActive.length===0?'<div class="muted">No loyalty activity yet.</div>':mostActive.map(m=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div>${escapeHtml(m.name||'—')}</div><div style="font-weight:700;color:var(--accentDark)">${m.count} rewards</div></div>`).join('')}
+  </div>`;
+}
+
+/* ===== Referral Program Module ===== */
+let REFERRAL_TAB='dashboard';
+function rewardValueLabel(r){
+  if(!r||!r.type)return'—';
+  if(r.type==='percentage')return(r.value||0)+'% off';
+  if(r.type==='free_item')return'Free item';
+  return money(r.value||0);
+}
+function renderReferral(){
+  $("#admin-title").innerHTML='<i class="fa-solid fa-user-plus" style="color:var(--accent)"></i> Referral Program';
+  const tabs=[['dashboard','Dashboard'],['campaigns','Campaigns'],['records','Records'],['settings','Settings']];
+  $("#admin-view").innerHTML=`
+    <div class="admin-card" style="display:flex;gap:8px;flex-wrap:wrap;padding:10px">
+      ${tabs.map(t=>`<button class="btn btn-sm ${REFERRAL_TAB===t[0]?'':'btn-outline'}" onclick="switchReferralTab('${t[0]}')">${t[1]}</button>`).join('')}
+    </div>
+    <div id="referral-tab-body"></div>`;
+  renderReferralTabBody();
+}
+function switchReferralTab(t){REFERRAL_TAB=t;renderReferral()}
+function renderReferralTabBody(){
+  if(REFERRAL_TAB==='dashboard')$("#referral-tab-body").innerHTML=referralDashboardHtml();
+  else if(REFERRAL_TAB==='campaigns'){$("#referral-tab-body").innerHTML=referralCampaignsHtml();wireCampaignForm();}
+  else if(REFERRAL_TAB==='records'){$("#referral-tab-body").innerHTML=referralRecordsHtml();wireReferralRecordsTab();}
+  else if(REFERRAL_TAB==='settings'){$("#referral-tab-body").innerHTML=referralSettingsHtml();wireReferralSettings();}
+}
+
+/* -- Dashboard / Analytics -- */
+function referralDashboardHtml(){
+  const total=REFERRALS_ALL.length;
+  const pending=REFERRALS_ALL.filter(r=>r.status==='pending').length;
+  const completed=REFERRALS_ALL.filter(r=>r.status==='completed').length;
+  const rewarded=REFERRALS_ALL.filter(r=>r.status==='rewarded').length;
+  const failed=REFERRALS_ALL.filter(r=>r.status==='failed').length;
+  const convRate=total?Math.round((rewarded/total)*100):0;
+  const byReferrer={};
+  REFERRALS_ALL.forEach(r=>{const key=r.referrerEmail||r.referrerUid;if(!key)return;byReferrer[key]=byReferrer[key]||{name:r.referrerName,count:0};byReferrer[key].count++});
+  const topReferrers=Object.values(byReferrer).sort((a,b)=>b.count-a.count).slice(0,5);
+  return `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total Referrals</div></div>
+    <div class="stat-card"><div class="stat-num">${pending}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card"><div class="stat-num">${completed}</div><div class="stat-label">Tasks Completed</div></div>
+    <div class="stat-card"><div class="stat-num">${rewarded}</div><div class="stat-label">Rewarded</div></div>
+    <div class="stat-card"><div class="stat-num">${failed}</div><div class="stat-label">Failed</div></div>
+    <div class="stat-card"><div class="stat-num">${convRate}%</div><div class="stat-label">Conversion Rate</div></div>
+  </div>
+  <div class="admin-card"><h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Top Referrers</h3>
+  ${topReferrers.length===0?'<div class="muted">No referral activity yet.</div>':topReferrers.map(r=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div>${escapeHtml(r.name||'—')}</div><div style="font-weight:700;color:var(--accentDark)">${r.count} referrals</div></div>`).join('')}
+  </div>`;
+}
+
+/* -- Campaign CRUD -- */
+let CAMPAIGN_TASKS_DRAFT=[];
+function referralCampaignsHtml(){
+  return `
+  <div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)" id="camp-form-title">Create Campaign</h3>
+    <input type="hidden" id="camp-edit-id">
+    <label>Campaign Name</label><input id="camp-name" placeholder="e.g. Refer & Earn — July">
+    <label style="margin-top:10px">Tasks the referred friend must complete (all required)</label>
+    <div id="camp-tasks-list"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <select id="camp-task-type" style="flex:1"><option value="orders_count">Complete N Orders</option><option value="min_spend">Spend Minimum Amount</option></select>
+      <input id="camp-task-value" type="number" min="1" placeholder="Value" style="width:110px">
+      <button class="btn btn-sm btn-outline" id="camp-task-add">+ Add Task</button>
+    </div>
+    <div class="sep" style="margin:14px 0"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label>Referrer Reward Type</label>
+        <select id="camp-rr-type"><option value="coupon">Coupon</option><option value="cashback">Cashback</option><option value="fixed">Fixed Discount</option><option value="percentage">Percentage Discount</option><option value="free_item">Free Item</option></select>
+        <label>Reward Value</label><input id="camp-rr-value" type="number" min="0">
+        <label>Expiry (days)</label><input id="camp-rr-expiry" type="number" min="0" value="30">
+      </div>
+      <div><label>Referred Friend Reward Type</label>
+        <select id="camp-rd-type"><option value="coupon">Coupon</option><option value="cashback">Cashback</option><option value="fixed">Fixed Discount</option><option value="percentage">Percentage Discount</option><option value="free_item">Free Item</option></select>
+        <label>Reward Value</label><input id="camp-rd-value" type="number" min="0">
+        <label>Expiry (days)</label><input id="camp-rd-expiry" type="number" min="0" value="30">
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:12px;font-weight:600"><input type="checkbox" id="camp-active" checked style="width:auto"> Active</label>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" id="camp-save">Save Campaign</button>
+      <button class="btn btn-outline" id="camp-cancel" style="display:none">Cancel Edit</button>
+    </div>
+  </div>
+  <div class="admin-card"><table class="table"><thead><tr><th>Name</th><th>Tasks</th><th>Referrer Gets</th><th>Friend Gets</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${REFERRAL_CAMPAIGNS.length===0?'<tr><td colspan="6" class="muted">No campaigns yet.</td></tr>':REFERRAL_CAMPAIGNS.map(c=>`
+    <tr>
+      <td>${escapeHtml(c.name)}</td>
+      <td>${(c.tasks||[]).map(t=>t.type==='orders_count'?t.targetValue+' orders':money(t.targetValue||0)+' spend').join(', ')||'—'}</td>
+      <td>${rewardValueLabel(c.referrerReward)}</td>
+      <td>${rewardValueLabel(c.referredReward)}</td>
+      <td>${c.active!==false?'<span class="chip" style="background:#E6F7EE;color:#18A957">Active</span>':'<span class="chip" style="background:#FEE2E2;color:#E11D48">Inactive</span>'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" onclick="editCampaign('${c.id}')">Edit</button>
+        <button class="btn btn-sm ${c.active!==false?'btn-outline':'btn-success'}" onclick="toggleCampaignActive('${c.id}',${c.active!==false})">${c.active!==false?'Disable':'Enable'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCampaign('${c.id}')">Delete</button>
+      </td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+}
+function renderCampTasksList(){
+  $("#camp-tasks-list").innerHTML=CAMPAIGN_TASKS_DRAFT.length===0?'<div class="muted" style="font-size:13px">No tasks added yet.</div>':CAMPAIGN_TASKS_DRAFT.map((t,i)=>`<div class="chip" style="margin:3px">${t.type==='orders_count'?t.targetValue+' orders':money(t.targetValue||0)+' spend'} <i class="fa-solid fa-xmark" style="cursor:pointer;margin-left:6px" onclick="removeCampTask(${i})"></i></div>`).join('');
+}
+function removeCampTask(i){CAMPAIGN_TASKS_DRAFT.splice(i,1);renderCampTasksList()}
+function wireCampaignForm(){
+  CAMPAIGN_TASKS_DRAFT=[];
+  renderCampTasksList();
+  $("#camp-task-add").addEventListener("click",()=>{
+    const type=$("#camp-task-type").value;const val=parseFloat($("#camp-task-value").value);
+    if(!val||val<=0){alert("Enter a valid task value.");return}
+    CAMPAIGN_TASKS_DRAFT.push({type,targetValue:val});
+    $("#camp-task-value").value="";
+    renderCampTasksList();
+  });
+  $("#camp-save").addEventListener("click",saveCampaign);
+  $("#camp-cancel").addEventListener("click",resetCampaignForm);
+}
+function resetCampaignForm(){
+  CAMPAIGN_TASKS_DRAFT=[];
+  $("#camp-edit-id").value="";$("#camp-name").value="";renderCampTasksList();
+  $("#camp-rr-type").value="coupon";$("#camp-rr-value").value="";$("#camp-rr-expiry").value="30";
+  $("#camp-rd-type").value="coupon";$("#camp-rd-value").value="";$("#camp-rd-expiry").value="30";
+  $("#camp-active").checked=true;
+  $("#camp-form-title").textContent="Create Campaign";$("#camp-cancel").style.display="none";
+}
+function editCampaign(id){
+  const c=REFERRAL_CAMPAIGNS.find(x=>x.id===id);if(!c)return;
+  REFERRAL_TAB='campaigns';renderReferral();
+  CAMPAIGN_TASKS_DRAFT=(c.tasks||[]).slice();renderCampTasksList();
+  $("#camp-edit-id").value=id;$("#camp-name").value=c.name||"";
+  $("#camp-rr-type").value=c.referrerReward?.type||"coupon";$("#camp-rr-value").value=c.referrerReward?.value||"";$("#camp-rr-expiry").value=c.referrerReward?.expiryDays||0;
+  $("#camp-rd-type").value=c.referredReward?.type||"coupon";$("#camp-rd-value").value=c.referredReward?.value||"";$("#camp-rd-expiry").value=c.referredReward?.expiryDays||0;
+  $("#camp-active").checked=c.active!==false;
+  $("#camp-form-title").textContent="Edit Campaign";$("#camp-cancel").style.display="inline-flex";
+  window.scrollTo(0,0);
+}
+function saveCampaign(){
+  const id=$("#camp-edit-id").value;
+  const name=$("#camp-name").value.trim();
+  if(!name){alert("Enter a campaign name.");return}
+  if(CAMPAIGN_TASKS_DRAFT.length===0){alert("Add at least one task.");return}
+  const data={
+    name,tasks:CAMPAIGN_TASKS_DRAFT.slice(),
+    referrerReward:{type:$("#camp-rr-type").value,value:parseFloat($("#camp-rr-value").value)||0,expiryDays:parseInt($("#camp-rr-expiry").value)||0,name:name+" — Referrer Reward"},
+    referredReward:{type:$("#camp-rd-type").value,value:parseFloat($("#camp-rd-value").value)||0,expiryDays:parseInt($("#camp-rd-expiry").value)||0,name:name+" — Welcome Reward"},
+    active:$("#camp-active").checked,updatedAt:Date.now()
+  };
+  if(id){referralCampaignsRef.child(id).update(data).then(()=>{toast("Campaign updated!");resetCampaignForm()})}
+  else{data.createdAt=Date.now();referralCampaignsRef.push(data).then(()=>{toast("Campaign created!");resetCampaignForm()})}
+}
+function toggleCampaignActive(id,current){referralCampaignsRef.child(id).update({active:!current}).then(()=>toast(current?"Campaign disabled":"Campaign enabled"))}
+function deleteCampaign(id){if(!confirm("Delete this campaign? Existing referral records won't be affected."))return;referralCampaignsRef.child(id).remove().then(()=>toast("Campaign deleted"))}
+
+/* -- Records (search + filter) -- */
+function referralRecordsHtml(q="",statusFilter="all"){
+  const term=q.trim().toLowerCase();
+  let filtered=REFERRALS_ALL;
+  if(term)filtered=filtered.filter(r=>(r.referrerName||'').toLowerCase().includes(term)||(r.referrerEmail||'').toLowerCase().includes(term)||(r.referredName||'').toLowerCase().includes(term)||(r.referredEmail||'').toLowerCase().includes(term)||(r.code||'').toLowerCase().includes(term));
+  if(statusFilter!=='all')filtered=filtered.filter(r=>r.status===statusFilter);
+  return `
+  <div class="admin-card" style="display:flex;gap:8px;flex-wrap:wrap">
+    <input id="ref-search" placeholder="Search by name, email, or code..." style="flex:2" value="${escapeHtml(q)}">
+    <select id="ref-status-filter" style="flex:1">
+      <option value="all">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="completed">Completed</option>
+      <option value="rewarded">Rewarded</option>
+      <option value="failed">Failed</option>
+    </select>
+  </div>
+  <div class="admin-card"><table class="table"><thead><tr><th>Referrer</th><th>Referred Friend</th><th>Code</th><th>Status</th><th>Joined</th></tr></thead><tbody>
+  ${filtered.length===0?'<tr><td colspan="5" class="muted">No referral records found.</td></tr>':filtered.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(r=>`
+    <tr>
+      <td>${escapeHtml(r.referrerName||'—')}<br><span class="muted" style="font-size:11px">${escapeHtml(r.referrerEmail||'')}</span></td>
+      <td>${escapeHtml(r.referredName||'—')}<br><span class="muted" style="font-size:11px">${escapeHtml(r.referredEmail||'')}</span></td>
+      <td>${escapeHtml(r.code||'—')}</td>
+      <td>${r.status==='rewarded'?'<span class="chip" style="background:#E6F7EE;color:#18A957">Rewarded</span>':r.status==='completed'?'<span class="chip" style="background:#E0F2FE;color:#0284C7">Completed</span>':r.status==='failed'?'<span class="chip" style="background:#FEE2E2;color:#E11D48">Failed</span>':'<span class="chip" style="background:#FFF7E6;color:#D97706">Pending</span>'}</td>
+      <td>${r.createdAt?new Date(r.createdAt).toLocaleDateString():'—'}</td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+}
+function wireReferralRecordsTab(){
+  const rerun=()=>{
+    const q=$("#ref-search").value;const st=$("#ref-status-filter").value;
+    $("#referral-tab-body").innerHTML=referralRecordsHtml(q,st);
+    wireReferralRecordsTab();
+    $("#ref-search").focus();$("#ref-search").selectionStart=$("#ref-search").value.length;
+  };
+  $("#ref-search").addEventListener("input",rerun);
+  $("#ref-status-filter").addEventListener("change",rerun);
+}
+
+/* -- Settings -- */
+function referralSettingsHtml(){
+  return `<div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Referral Program Settings</h3>
+    <label style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px">
+      <input type="checkbox" id="ref-enabled-toggle" ${REFERRAL_SETTINGS.enabled!==false?'checked':''} style="width:auto">
+      Referral Program Enabled
+    </label>
+    <div class="muted" style="font-size:13px;margin-top:8px">When disabled, new referral codes will not be recorded and no new rewards will be issued. Existing pending referrals remain unaffected.</div>
+  </div>`;
+}
+function wireReferralSettings(){
+  $("#ref-enabled-toggle").addEventListener("change",e=>{
+    referralSettingsRef.update({enabled:e.target.checked}).then(()=>toast(e.target.checked?"Referral program enabled":"Referral program disabled"));
+  });
+}
+
+/* ===== Vendor Management Module ===== */
+let VENDOR_TAB='applications';
+function renderVendors(){
+  $("#admin-title").innerHTML='<i class="fa-solid fa-store" style="color:var(--accent)"></i> Vendor Management';
+  const tabs=[['applications','Applications'],['plans','Plans'],['videos','Help Videos'],['settings','Settings']];
+  $("#admin-view").innerHTML=`
+    <div class="admin-card" style="display:flex;gap:8px;flex-wrap:wrap;padding:10px">
+      ${tabs.map(t=>`<button class="btn btn-sm ${VENDOR_TAB===t[0]?'':'btn-outline'}" onclick="switchVendorTab('${t[0]}')">${t[1]}</button>`).join('')}
+    </div>
+    <div id="vendor-tab-body"></div>`;
+  renderVendorTabBody();
+}
+function switchVendorTab(t){VENDOR_TAB=t;renderVendors()}
+function renderVendorTabBody(){
+  if(VENDOR_TAB==='applications'){$("#vendor-tab-body").innerHTML=vendorApplicationsHtml();wireVendorApplicationsTab();}
+  else if(VENDOR_TAB==='plans'){$("#vendor-tab-body").innerHTML=vendorPlansHtml();wireVendorPlansForm();}
+  else if(VENDOR_TAB==='videos'){$("#vendor-tab-body").innerHTML=vendorVideosHtml();wireVendorVideosForm();}
+  else if(VENDOR_TAB==='settings'){$("#vendor-tab-body").innerHTML=vendorSettingsAdminHtml();wireVendorSettingsAdmin();}
+}
+
+/* -- Applications -- */
+const vendorStatusChip=s=>{
+  const map={pending_payment:['#FFF7E6','#D97706','Pending Payment'],pending_approval:['#FFF7E6','#D97706','Pending Approval'],Approved:['#E6F7EE','#18A957','Approved'],rejected:['#FEE2E2','#E11D48','Rejected'],suspended:['#FEE2E2','#E11D48','Suspended'],blocked:['#FEE2E2','#E11D48','Blocked']};
+  const[bg,color,label]=map[s]||['#F3F4F6','#6B7280',s||'Unknown'];
+  return `<span class="chip" style="background:${bg};color:${color}">${label}</span>`;
+};
+function vendorApplicationsHtml(q=""){
+  const term=q.trim().toLowerCase();
+  const list=term?VENDORS_ALL.filter(v=>(v.restaurantName||'').toLowerCase().includes(term)||(v.ownerName||'').toLowerCase().includes(term)||(v.email||'').toLowerCase().includes(term)):VENDORS_ALL;
+  return `<div class="admin-card"><input id="vend-search" placeholder="Search by restaurant, owner, or email..." value="${escapeHtml(q)}"></div>
+  <div id="vend-list">${vendorApplicationsListHtml(list)}</div>`;
+}
+function vendorApplicationsListHtml(list){
+  if(list.length===0)return '<div class="admin-card muted">No vendor applications yet.</div>';
+  return list.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(v=>`
+    <div class="admin-card">
+      <div class="row">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${v.logoUrl?`<img src="${v.logoUrl}" style="width:44px;height:44px;border-radius:10px;object-fit:cover">`:`<div style="width:44px;height:44px;border-radius:10px;background:var(--accentLight);display:grid;place-items:center;color:var(--accent)"><i class="fa-solid fa-store"></i></div>`}
+          <div><strong style="color:var(--accentDark)">${escapeHtml(v.restaurantName||'—')}</strong><div class="muted" style="font-size:12px">${escapeHtml(v.ownerName||'')} · ${escapeHtml(v.mobile||'')}</div></div>
+        </div>
+        ${vendorStatusChip(v.status)}
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:8px">${escapeHtml(v.address||'')} · ${escapeHtml(v.category||'')}</div>
+      <div class="muted" style="font-size:12px">Email: ${escapeHtml(v.email||'')} · FSSAI: ${escapeHtml(v.fssai||'—')} · GST: ${escapeHtml(v.gst||'—')}</div>
+      <div class="muted" style="font-size:12px">Plan: ${escapeHtml(v.planName||'—')} · Bank: ${escapeHtml(v.bankAccount||'—')} · UPI: ${escapeHtml(v.upiId||'—')}</div>
+      ${v.imageUrls&&v.imageUrls.length?`<div style="display:flex;gap:6px;margin-top:8px;overflow-x:auto">${v.imageUrls.map(u=>`<img src="${u}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0">`).join('')}</div>`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        ${v.status==='pending_approval'?`<button class="btn btn-sm btn-success" onclick="setVendorStatus('${v.uid}','Approved')">Approve</button><button class="btn btn-sm btn-danger" onclick="setVendorStatus('${v.uid}','rejected')">Reject</button>`:''}
+        ${v.status==='Approved'?`<button class="btn btn-sm btn-outline" onclick="setVendorStatus('${v.uid}','suspended')">Suspend</button><button class="btn btn-sm btn-danger" onclick="setVendorStatus('${v.uid}','blocked')">Block</button>`:''}
+        ${(v.status==='suspended'||v.status==='blocked'||v.status==='rejected')?`<button class="btn btn-sm btn-success" onclick="setVendorStatus('${v.uid}','Approved')">Reactivate</button>`:''}
+      </div>
+    </div>`).join('');
+}
+function wireVendorApplicationsTab(){
+  $("#vend-search").addEventListener("input",e=>{
+    const term=e.target.value.trim().toLowerCase();
+    const filtered=term?VENDORS_ALL.filter(v=>(v.restaurantName||'').toLowerCase().includes(term)||(v.ownerName||'').toLowerCase().includes(term)||(v.email||'').toLowerCase().includes(term)):VENDORS_ALL;
+    $("#vend-list").innerHTML=vendorApplicationsListHtml(filtered);
+  });
+}
+function setVendorStatus(uid,status){
+  const updates={status};
+  if(status==='Approved')updates.approvedAt=Date.now();
+  vendorsRef.child(uid).update(updates).then(()=>toast("Vendor status updated: "+status)).catch(()=>alert("Failed."));
+}
+
+/* -- Subscription Plans -- */
+function vendorPlansHtml(){
+  return `<div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)" id="vp-form-title">Add Plan</h3>
+    <input type="hidden" id="vp-edit-id">
+    <label>Plan Name</label><input id="vp-name" placeholder="e.g. 1 Month Plan">
+    <div class="row" style="gap:10px"><div style="flex:1"><label>Duration (days)</label><input id="vp-duration" type="number" min="1"></div><div style="flex:1"><label>Trial Days</label><input id="vp-trial" type="number" min="0" value="0"></div></div>
+    <label>Price</label><input id="vp-price" type="number" min="0">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input type="checkbox" id="vp-active" checked style="width:auto"> Active</label>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" id="vp-save">Save Plan</button><button class="btn btn-outline" id="vp-cancel" style="display:none">Cancel Edit</button></div>
+  </div>
+  <div class="admin-card"><table class="table"><thead><tr><th>Name</th><th>Duration</th><th>Trial</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${VENDOR_PLANS.length===0?'<tr><td colspan="6" class="muted">No plans yet.</td></tr>':VENDOR_PLANS.map(p=>`
+    <tr><td>${escapeHtml(p.name)}</td><td>${p.durationDays} days</td><td>${p.trialDays||0} days</td><td>${money(p.price)}</td>
+    <td>${p.active!==false?'<span class="chip" style="background:#E6F7EE;color:#18A957">Active</span>':'<span class="chip" style="background:#FEE2E2;color:#E11D48">Inactive</span>'}</td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm btn-outline" onclick="editVendorPlan('${p.id}')">Edit</button><button class="btn btn-sm ${p.active!==false?'btn-outline':'btn-success'}" onclick="toggleVendorPlan('${p.id}',${p.active!==false})">${p.active!==false?'Disable':'Enable'}</button><button class="btn btn-sm btn-danger" onclick="deleteVendorPlan('${p.id}')">Delete</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function wireVendorPlansForm(){
+  $("#vp-save").addEventListener("click",saveVendorPlan);
+  $("#vp-cancel").addEventListener("click",resetVendorPlanForm);
+}
+function resetVendorPlanForm(){
+  $("#vp-edit-id").value="";$("#vp-name").value="";$("#vp-duration").value="";$("#vp-trial").value="0";$("#vp-price").value="";$("#vp-active").checked=true;
+  $("#vp-form-title").textContent="Add Plan";$("#vp-cancel").style.display="none";
+}
+function editVendorPlan(id){
+  const p=VENDOR_PLANS.find(x=>x.id===id);if(!p)return;
+  VENDOR_TAB='plans';renderVendors();
+  $("#vp-edit-id").value=id;$("#vp-name").value=p.name;$("#vp-duration").value=p.durationDays;$("#vp-trial").value=p.trialDays||0;$("#vp-price").value=p.price;$("#vp-active").checked=p.active!==false;
+  $("#vp-form-title").textContent="Edit Plan";$("#vp-cancel").style.display="inline-flex";
+}
+function saveVendorPlan(){
+  const id=$("#vp-edit-id").value;
+  const name=$("#vp-name").value.trim();const durationDays=parseInt($("#vp-duration").value);const trialDays=parseInt($("#vp-trial").value)||0;const price=parseFloat($("#vp-price").value)||0;const active=$("#vp-active").checked;
+  if(!name||!durationDays){alert("Enter plan name and duration.");return}
+  const data={name,durationDays,trialDays,price,active,updatedAt:Date.now()};
+  if(id){vendorPlansRef.child(id).update(data).then(()=>{toast("Plan updated!");resetVendorPlanForm()})}
+  else{data.createdAt=Date.now();vendorPlansRef.push(data).then(()=>{toast("Plan created!");resetVendorPlanForm()})}
+}
+function toggleVendorPlan(id,current){vendorPlansRef.child(id).update({active:!current}).then(()=>toast(current?"Plan disabled":"Plan enabled"))}
+function deleteVendorPlan(id){if(!confirm("Delete this plan?"))return;vendorPlansRef.child(id).remove().then(()=>toast("Plan deleted"))}
+
+/* -- Help Videos -- */
+function vendorVideosHtml(){
+  return `<div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Add Tutorial Video</h3>
+    <label>Title</label><input id="vv-title" placeholder="e.g. How to Accept Orders">
+    <label>Category</label><input id="vv-category" placeholder="e.g. Orders">
+    <label>Video URL</label><input id="vv-url" placeholder="https://youtube.com/...">
+    <button class="btn btn-block" id="vv-add" style="margin-top:12px">Add Video</button>
+  </div>
+  <div class="admin-card"><table class="table"><thead><tr><th>Title</th><th>Category</th><th>Actions</th></tr></thead><tbody>
+  ${VENDOR_HELP_VIDEOS.length===0?'<tr><td colspan="3" class="muted">No videos yet.</td></tr>':VENDOR_HELP_VIDEOS.map(v=>`
+    <tr><td>${escapeHtml(v.title)}</td><td>${escapeHtml(v.category||'—')}</td><td><button class="btn btn-sm btn-danger" onclick="deleteVendorVideo('${v.id}')">Delete</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function wireVendorVideosForm(){
+  $("#vv-add").addEventListener("click",()=>{
+    const title=$("#vv-title").value.trim();const category=$("#vv-category").value.trim();const url=$("#vv-url").value.trim();
+    if(!title||!url){alert("Enter title and video URL.");return}
+    vendorHelpVideosRef.push({title,category,url,createdAt:Date.now()}).then(()=>{toast("Video added!");$("#vv-title").value="";$("#vv-category").value="";$("#vv-url").value=""});
+  });
+}
+function deleteVendorVideo(id){if(!confirm("Delete this video?"))return;vendorHelpVideosRef.child(id).remove().then(()=>toast("Video deleted"))}
+
+/* -- Settings -- */
+function vendorSettingsAdminHtml(){
+  return `<div class="admin-card">
+    <h3 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Vendor Panel Settings</h3>
+    <label>Maximum Preparation Time (minutes)</label>
+    <input id="vs-max-prep" type="number" min="5" value="${VENDOR_SETTINGS.maxPrepMinutes||120}">
+    <div class="muted" style="font-size:12px;margin-top:6px">Vendors can extend order preparation time up to this limit.</div>
+    <button class="btn btn-block" id="vs-max-prep-save" style="margin-top:12px">Save</button>
+  </div>`;
+}
+function wireVendorSettingsAdmin(){
+  $("#vs-max-prep-save").addEventListener("click",()=>{
+    const maxPrepMinutes=parseInt($("#vs-max-prep").value)||120;
+    vendorSettingsRef.update({maxPrepMinutes}).then(()=>toast("Settings saved!"));
+  });
+}
+
+function renderDeliveryApps(){
+  $("#admin-title").textContent="Delivery Partners";
+  $("#admin-view").innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px">
+    ${DELIVERY_APPS.length===0?'<div class="admin-card muted">No applications yet.</div>':DELIVERY_APPS.map(a=>{
+      const stats=getDeliveryStats(a.email);
+      return`<div class="admin-card" data-key="${a.firebaseKey}">
+        <div class="row"><div><div style="font-weight:700;font-size:16px;color:var(--accentDark)">${escapeHtml(a.name)}</div><div class="muted" style="font-size:13px">${escapeHtml(a.email)} | ${escapeHtml(a.phone)}</div></div>
+          <div class="chip" style="font-size:12px;${a.status==='Approved'?'background:#E6F7EE;color:#18A957;border-color:#18A957':a.status==='Rejected'?'background:#FEE2E2;color:#E11D48;border-color:#E11D48':''}">${escapeHtml(a.status)}</div>
+        </div>
+        ${a.status==='Approved'?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0">
+          <div style="text-align:center;padding:8px;background:var(--accentLight);border-radius:10px"><div style="font-weight:700;color:var(--accent)">${stats.accepted}</div><div class="muted" style="font-size:11px">Accepted</div></div>
+          <div style="text-align:center;padding:8px;background:#F3E8FF;border-radius:10px"><div style="font-weight:700;color:#7C3AED">${stats.pickedUp}</div><div class="muted" style="font-size:11px">Picked Up</div></div>
+          <div style="text-align:center;padding:8px;background:#E6F7EE;border-radius:10px"><div style="font-weight:700;color:var(--success)">${stats.delivered}</div><div class="muted" style="font-size:11px">Delivered</div></div>
+        </div>`:''}
+        <div class="sep"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px">
+          <div><strong>Vehicle:</strong> ${escapeHtml(a.vehicle||'—')}</div>
+          <div><strong>Availability:</strong> ${escapeHtml(a.availability||'—')}</div>
+          <div><strong>From:</strong> ${escapeHtml(a.deliveryFrom||'—')}</div>
+          <div><strong>To:</strong> ${escapeHtml(a.deliveryTo||'—')}</div>
+          <div><strong>City:</strong> ${escapeHtml(a.city||'—')}</div>
+          <div><strong>License:</strong> ${escapeHtml(a.license||'—')}</div>
+        </div>
+        ${a.experience?`<div style="margin-top:6px;font-size:13px"><strong>Experience:</strong> ${escapeHtml(a.experience)}</div>`:''}
+        <div class="muted" style="font-size:11px;margin-top:6px">Applied: ${new Date(a.createdAt).toLocaleString()}</div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <select class="da-status" style="max-width:160px"><option ${a.status==='Pending'?'selected':''}>Pending</option><option ${a.status==='Approved'?'selected':''}>Approved</option><option ${a.status==='Rejected'?'selected':''}>Rejected</option></select>
+          <button class="btn btn-sm btn-success da-save"><i class="fa-solid fa-save"></i> Update</button>
+          <button class="btn btn-sm btn-danger da-del"><i class="fa-solid fa-trash"></i></button>
+          ${a.status==='Approved'?`<button class="btn btn-sm btn-outline da-view" data-email="${escapeHtml(a.email)}"><i class="fa-solid fa-eye"></i> Earnings & Orders</button>`:''}
+        </div>
+      </div>`}).join('')}
+    </div>`;
+  $$(".da-save").forEach(btn=>btn.addEventListener("click",(e)=>{const card=e.target.closest("[data-key]");const k=card.dataset.key;const s=card.querySelector(".da-status").value;db.ref('deliveryApplications/'+k).update({status:s}).then(()=>toast("Updated!"))}));
+  $$(".da-del").forEach(btn=>btn.addEventListener("click",(e)=>{const card=e.target.closest("[data-key]");if(confirm("Delete this application?")){db.ref('deliveryApplications/'+card.dataset.key).remove().then(()=>toast("Deleted!"))}}));
+  $$(".da-view").forEach(btn=>btn.addEventListener("click",(e)=>{const b=e.target.closest(".da-view"); routeTo("#/delivery/"+encodeURIComponent(b.dataset.email))}));
+}
+
+function renderDeliveryDetail(email){
+  const decodedEmail=decodeURIComponent(email);
+  const app=DELIVERY_APPS.find(a=>a.email&&a.email.toLowerCase()===decodedEmail.toLowerCase());
+  if(!app){renderDeliveryApps();return}
+  $("#admin-title").textContent=app.name+"'s Earnings";
+  
+  const stats=getDeliveryStats(decodedEmail);
+  const myOrders = stats.orders;
+  
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfWeek = startOfDay - (now.getDay() * 86400000);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+  let todayEarning = 0, weekEarning = 0, monthEarning = 0, totalEarning = 0;
+  let todayOrders = 0, weekOrders = 0, monthOrders = 0;
+
+  myOrders.filter(o=>o.deliveryStatus==='Delivered').forEach(o => {
+      const payout = o.deliveryPayout !== undefined ? o.deliveryPayout : (o.items ? o.items.reduce((s, it) => s + (typeof it.shipping === 'number' ? it.shipping : 50), 0) : 50);
+      
+      totalEarning += payout;
+      if (o.createdAt >= startOfDay) { todayEarning += payout; todayOrders++; }
+      if (o.createdAt >= startOfWeek) { weekEarning += payout; weekOrders++; }
+      if (o.createdAt >= startOfMonth) { monthEarning += payout; monthOrders++; }
+  });
+
+  const delStatusClass=s=>{if(s==='Delivered')return'delivered';if(s==='Picked Up')return'picked';if(s==='Accepted')return'accepted';return'unassigned'};
+  
+  $("#admin-view").innerHTML=`
+    <div class="admin-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:56px;height:56px;border-radius:999px;background:var(--accentLight);display:grid;place-items:center"><i class="fa-solid fa-motorcycle" style="font-size:24px;color:var(--accent)"></i></div>
+        <div><div style="font-weight:700;font-size:18px;color:var(--accentDark)">${escapeHtml(app.name)}</div><div class="muted">${escapeHtml(app.email)} | ${escapeHtml(app.phone)}</div><div class="muted" style="font-size:12px">Zone: ${escapeHtml(app.deliveryFrom||'')} to ${escapeHtml(app.deliveryTo||'')}</div></div>
+      </div>
+      
+      <h4 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Earnings Dashboard</h4>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+        <div class="earning-box"><div class="amt">${money(todayEarning)}</div><div class="lbl">Today</div></div>
+        <div class="earning-box"><div class="amt">${money(weekEarning)}</div><div class="lbl">This Week</div></div>
+        <div class="earning-box"><div class="amt">${money(monthEarning)}</div><div class="lbl">This Month</div></div>
+        <div class="earning-box" style="background:#E6F7EE; border-color:var(--success);"><div class="amt" style="color:var(--success)">${money(totalEarning)}</div><div class="lbl">Total Payout</div></div>
+      </div>
+
+      <h4 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Delivered Orders Dashboard</h4>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+        <div class="earning-box" style="background:#F0FDF4; border-color:#86EFAC;"><div class="amt" style="color:#166534">${todayOrders}</div><div class="lbl">Orders Today</div></div>
+        <div class="earning-box" style="background:#F0FDF4; border-color:#86EFAC;"><div class="amt" style="color:#166534">${weekOrders}</div><div class="lbl">Orders This Week</div></div>
+        <div class="earning-box" style="background:#F0FDF4; border-color:#86EFAC;"><div class="amt" style="color:#166534">${monthOrders}</div><div class="lbl">Orders This Month</div></div>
+        <div class="earning-box" style="background:#F0FDF4; border-color:#86EFAC;"><div class="amt" style="color:#166534">${stats.delivered}</div><div class="lbl">Total Delivered</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+        <div style="text-align:center;padding:10px;background:var(--accentLight);border-radius:10px"><div style="font-weight:700;font-size:20px;color:var(--accent)">${stats.total}</div><div class="muted" style="font-size:11px">Total Orders</div></div>
+        <div style="text-align:center;padding:10px;background:#E0F2FE;border-radius:10px"><div style="font-weight:700;font-size:20px;color:#0284C7">${stats.accepted}</div><div class="muted" style="font-size:11px">Accepted</div></div>
+        <div style="text-align:center;padding:10px;background:#F3E8FF;border-radius:10px"><div style="font-weight:700;font-size:20px;color:#7C3AED">${stats.pickedUp}</div><div class="muted" style="font-size:11px">Picked Up</div></div>
+        <div style="text-align:center;padding:10px;background:#E6F7EE;border-radius:10px"><div style="font-weight:700;font-size:20px;color:var(--success)">${stats.delivered}</div><div class="muted" style="font-size:11px">Delivered</div></div>
+      </div>
+
+      <h4 style="margin:0 0 10px;font-family:Poppins;color:var(--accentDark)">Order History (${myOrders.length})</h4>
+      ${myOrders.length===0?'<div class="muted">No orders accepted yet.</div>':myOrders.map(o=>`
+        <div style="padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer" onclick="routeTo('#/orders/${o.orderId}')">
+          <div class="row"><strong style="color:var(--accentDark)">#${escapeHtml(o.orderId)}</strong><span class="del-status-chip ${delStatusClass(o.deliveryStatus||'Accepted')}">${escapeHtml(o.deliveryStatus||'Accepted')}</span></div>
+          <div class="row" style="margin-top:4px"><div class="muted" style="font-size:13px">${escapeHtml(o.customer?.name||'')} — ${escapeHtml(o.items?.map(i=>i.name).join(', ')||'')}</div><div style="font-weight:700;color:var(--accentDark)">Payout: ${money(o.deliveryPayout !== undefined ? o.deliveryPayout : (typeof o.items?.[0]?.shipping === 'number' ? o.items[0].shipping : 50))}</div></div>
+          <div class="muted" style="font-size:11px">${new Date(o.createdAt).toLocaleString()}</div>
+        </div>`).join('')}
+      <div style="margin-top:12px"><a class="btn btn-outline btn-sm" href="#/delivery"><i class="fa-solid fa-arrow-left"></i> Back</a></div>
+    </div>`;
+}
+
+function renderReviews(){
+  $("#admin-title").textContent="All Reviews";
+  const sorted=[...RATINGS].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  $("#admin-view").innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+    ${sorted.length===0?'<div class="admin-card muted">No reviews yet.</div>':sorted.map(r=>{
+      const p=PRODUCTS.find(x=>x.id===r.productId);
+      return`<div class="admin-card" data-key="${r.firebaseKey}" style="display:flex;gap:12px;align-items:start;padding:12px">
+        ${p?`<img src="${p.imageUrls?.[0]||''}" style="width:48px;height:48px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">`:''}
+        <div style="flex:1"><div style="font-weight:700;color:var(--accentDark)">${p?escapeHtml(p.name):'Unknown'}</div><div class="review-stars" style="margin:2px 0">${renderStarIcons(r.rating)}</div>
+          ${r.reviewText?`<div style="font-size:13px;color:#444">${escapeHtml(r.reviewText)}</div>`:''}
+          <div class="muted" style="font-size:11px">${escapeHtml(r.userName||r.userEmail||'Anonymous')} — ${r.createdAt?new Date(r.createdAt).toLocaleString():''}</div>
+        </div>
+        <button class="btn btn-sm btn-danger rv-del"><i class="fa-solid fa-trash"></i></button>
+      </div>`}).join('')}
+    </div>`;
+  $$(".rv-del").forEach(btn=>btn.addEventListener("click",(e)=>{const card=e.target.closest("[data-key]");if(confirm("Delete this review?")){db.ref('ratings/'+card.dataset.key).remove().then(()=>toast("Deleted!"))}}));
+}
+
+async function compressToDataURL(file,maxW=1200,maxH=1200,quality=.85){const img=await fileToImage(file);const[w,h]=fitRect(img.naturalWidth,img.naturalHeight,maxW,maxH);const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);return c.toDataURL("image/jpeg",quality)}
+function fitRect(w,h,mW,mH){const r=Math.min(mW/w,mH/h,1);return[Math.round(w*r),Math.round(h*r)]}
+function fileToImage(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.src=fr.result};fr.onerror=rej;fr.readAsDataURL(file)})}
+
+render();
+</script>
+</body>
+</html>
