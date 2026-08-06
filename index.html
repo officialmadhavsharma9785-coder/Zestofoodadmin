@@ -775,8 +775,19 @@ function saveProduct(){
 
   const prepTimeMinutes=Number($("#pf-preptime").value)||0;
   const vendorUid=$("#pf-vendor").value||null;
-  const vendorEarnings=vendorUid?Number($("#pf-vendor-earnings").value)||0:undefined;
+  const vendorInput=$("#pf-vendor-earnings");
 
+const vendorEarnings=
+vendorUid&&vendorInput
+?Number(vendorInput.value||0)
+:0;
+if(vendorUid && vendorEarnings<=0){
+
+alert("Please enter Vendor Earnings.");
+
+return;
+
+}
   const data={
       name, description:desc, category:cat, 
       priceMrp:mrp, discountPercent:disc, price, 
