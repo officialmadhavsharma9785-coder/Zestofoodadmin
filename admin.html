@@ -157,6 +157,13 @@ const $=s=>document.querySelector(s);const $$=s=>Array.from(document.querySelect
 const money=n=>'\u20B9'+(n||0).toLocaleString("en-IN");
 const uid=()=>'p_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
 const escapeHtml=(s="")=>s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+
+// UPDATE 15: Mask phone number for privacy
+function maskPhoneNumber(phone){
+  if(!phone||phone.length<10)return '***-****';
+  const last4=phone.slice(-4);
+  return '***-***-'+last4;
+}
 const toast=msg=>{const t=$("#toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)};
 const routeTo=hash=>{location.hash=hash};
 function renderStarIcons(r,max=5){let h='';for(let i=1;i<=max;i++)h+=i<=r?'<i class="fa-solid fa-star"></i>':'<i class="fa-solid fa-star empty"></i>';return h}
@@ -204,15 +211,31 @@ categoriesRef.on('value',s=>{const v=s.val();CATEGORIES=v?Object.keys(v).map(k=>
 offersRef.on('value',s=>{const v=s.val();OFFERS=v?Object.keys(v).map(k=>({id:k,...v[k]})):[];tryRender()});
 var configRef=db.ref('config');var deliveryRef=db.ref('deliveryApplications');
 
-productsRef.on('value',s=>{PRODUCTS=s.val()?Object.values(s.val()):[];PRODUCTS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()},err=>{console.warn('products read failed:',err);PRODUCTS=[];tryRender()});
-ordersRef.on('value',s=>{ORDERS=s.val()?Object.values(s.val()):[];ORDERS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));rebuildCustomers();checkForNewOrders();tryRender()},err=>{console.warn('orders read failed:',err);ORDERS=[];rebuildCustomers();tryRender()});
-ratingsRef.on('value',s=>{RATINGS=s.val()?Object.values(s.val()):[];tryRender()},err=>{console.warn('ratings read failed:',err);RATINGS=[];tryRender()});
+productsRef.on('value',s=>{PRODUCTS=s.val()?Object.values(s.val()):[];PRODUCTS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()});
+ordersRef.on('value',s=>{
+  let rawOrders=s.val()?Object.values(s.val()):[];
+  // FILTER: Remove ghost orders (Invalid Date, missing user, zero amount, malformed)
+  ORDERS=rawOrders.filter(o=>{
+    if(!o.createdAt || o.createdAt<=0) return false;
+    if(!o.uid && !o.customer?.email) return false;
+    if(o.amount===undefined || o.amount===null || isNaN(o.amount) || o.amount<0) return false;
+    if(!o.orderId || !o.items || !Array.isArray(o.items) || o.items.length===0) return false;
+    return true;
+  });
+  ORDERS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  rebuildCustomers();checkForNewOrders();tryRender()
+},err=>{
+  console.warn("Admin orders listener error:",err);
+  ORDERS=[];
+  rebuildCustomers();tryRender();
+});
+ratingsRef.on('value',s=>{RATINGS=s.val()?Object.values(s.val()):[];tryRender()});
 configRef.on('value',s=>{
   CONFIG = s.val()||{};
   HERO_IMAGE_URL=CONFIG.heroImage||"";BANNER_TEXT=CONFIG.bannerText||"";APP_LOGO_URL=CONFIG.appLogo||"";
   if(APP_LOGO_URL){$("#admin-logo").src=APP_LOGO_URL;$("#admin-logo").style.display="block"}else{$("#admin-logo").style.display="none"}
-  tryRender()},err=>{console.warn('config read failed:',err);CONFIG={};tryRender()});
-deliveryRef.on('value',s=>{DELIVERY_APPS=s.val()?Object.values(s.val()):[];DELIVERY_APPS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()},err=>{console.warn('delivery applications read failed:',err);DELIVERY_APPS=[];tryRender()});
+  tryRender()});
+deliveryRef.on('value',s=>{DELIVERY_APPS=s.val()?Object.values(s.val()):[];DELIVERY_APPS.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));tryRender()});
 
 function rebuildCustomers(){
   const map={};
@@ -818,14 +841,22 @@ function renderOrders(){
       const payBadge=isOnline?'<span style="color:#5F259F;font-weight:600">UPI</span>':'<span style="font-weight:600;color:var(--accentDark)">COD</span>';
       const delStatus=o.deliveryStatus||'New Order';
       const delBoy=o.deliveryBoy?escapeHtml(o.deliveryBoy.name||'—'):'Not assigned';
+      const customerMaskPhone=maskPhoneNumber(o.customer?.phone);
       return`<div class="admin-card" style="cursor:pointer;position:relative" data-order="${o.orderId}">
         <button class="btn btn-sm btn-danger" style="position:absolute;top:12px;right:12px;z-index:2" data-delete-order="${o.firebaseKey}" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
         <div class="row" style="padding-right:40px"><strong style="color:var(--accentDark)">#${escapeHtml(o.orderId)}</strong><span class="muted" style="font-size:12px">${new Date(o.createdAt).toLocaleString()}</span></div>
         <div class="row" style="margin-top:6px"><div>${escapeHtml(o.customer?.name||'—')} <span class="muted" style="font-size:11px">(${escapeHtml(o.customer?.city||'—')})</span></div><div style="font-weight:700;color:var(--accentDark)">${money(o.amount)}</div></div>
+        <!-- UPDATE 15: Masked phone -->
+        <div class="muted" style="font-size:11px;margin-top:4px"><i class="fa-solid fa-phone"></i> <span class="customer-phone" data-phone="${o.firebaseKey}">${customerMaskPhone}</span></div>
         <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <div class="chip">${payBadge}</div>
           <span class="del-status-chip ${delStatusClass(delStatus)}"><i class="fa-solid fa-motorcycle"></i> ${delBoy} — ${delStatus}</span>
         </div>
+        <!-- UPDATE 11 & 12: Show pickup code and photo -->
+        ${delStatus!=='New Order'&&(o.pickupCode||o.pickupPhotoUrl)?`<div style="font-size:11px;margin-top:6px;padding:6px;background:var(--accentLight);border-radius:4px">
+          ${o.pickupCode?`<div><i class="fa-solid fa-lock"></i> Code: ${o.pickupCode}</div>`:''}
+          ${o.pickupPhotoUrl?`<div><i class="fa-solid fa-camera"></i> Photo: <i class="fa-solid fa-check" style="color:var(--success)"></i></div>`:''}
+        </div>`:''}
         <div class="muted" style="font-size:12px;margin-top:4px">${escapeHtml(o.items?.map(i=>i.name+' x'+i.qty).join(', ')||'')}</div>
       </div>`}).join('')}
     </div>`;
@@ -959,6 +990,15 @@ function renderOrderDetail(orderId){
 
       ${locHtml}
       ${delBoyHtml}
+      <!-- UPDATE 11 & 12: Pickup Code and Photo Proof -->
+      ${(o.pickupCode||o.pickupPhotoUrl||o.pickupCompletedAt)?`<div class="order-detail-card" style="background:var(--accentLight);border-color:var(--accent)">
+        <h4><i class="fa-solid fa-lock"></i> Pickup Verification</h4>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+          ${o.pickupCode?`<div><strong>Pickup Code:</strong> <span style="font-family:monospace;font-weight:700;color:var(--accentDark)">${escapeHtml(o.pickupCode.toString().padStart(6,'0'))}</span></div>`:''}
+          ${o.pickupCompletedAt?`<div><strong>Verified At:</strong> ${new Date(o.pickupCompletedAt).toLocaleString()}</div>`:''}
+          ${o.pickupPhotoUrl?`<div><strong>Photo Proof:</strong> <i class="fa-solid fa-camera"></i> <i class="fa-solid fa-check" style="color:var(--success)"></i> Uploaded</div>`:''}
+        </div>
+      </div>`:''}
       ${o.deliveryStatus==='Ready for Pickup'||o.deliveryBoy?`<div class="order-detail-card">
         <button class="btn btn-block btn-outline" id="od-assign-btn"><i class="fa-solid fa-motorcycle"></i> ${o.deliveryBoy?'Reassign Delivery Boy':'Assign Delivery Boy'}</button>
       </div>`:''}
